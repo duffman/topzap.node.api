@@ -1,3 +1,4 @@
+import { ProductModel } from "@Db/models/product-model";
 /**
  * Copyright (c) Patrik Forsberg <patrik.forsberg@coldmind.com> - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
@@ -6,25 +7,25 @@
  */
 
 const express = require("express");
-const app = express();
 
 export class App {
+	port = 8976;
+	expressApp = express();
+
 	constructor() {
 		console.log("App started");
-		init();
+		this.init();
 	}
 
 	private init(): void {
-		var model
+		let model = new ProductModel("Kalle", "0345034543", "http://www.kalle.com/d.jpg");
 
-		app.get('/api/offer', (req, res)=>{
-
-
-			res.json()
+		this.expressApp.get('/api/offer', (req, res)=>{
+			res.json(model);
 		});
 
-		app.listen(3000);
-		console.log('Listening on localhost:3000');
+		this.expressApp.listen(this.port);
+		console.log(`Listening on localhost: ${this.port}`);
 
 	}
 
