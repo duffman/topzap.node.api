@@ -1,0 +1,18 @@
+{
+  "name": "topzap.node.api",
+  "version": "0.7.0",
+  "description": "Lightweight TopZap API Server",
+  "scripts": {
+    "start": "node ./dist/core/app.js"
+  },
+  "main": "index.js",
+  "author": "Patrik Forsberg <patrik.forsberg@coldmind.com>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@types/node": "^10.9.4",
+    "express": "^4.16.3",
+    "knex": "^0.15.2",
+    "mysql": "^2.16.0",
+    "typescript": "^3.0.3"
+  }
+}
