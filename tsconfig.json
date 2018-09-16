@@ -9,8 +9,9 @@
   "outDir": "dist",
   "baseUrl": "./",
   "paths": {
-    "@Core/*": ["./core/*"],
-    "@Db/*": ["./db/*"]
+    "@core/*": ["./core/*"],
+    "@models/*": ["./models/*"],
+    "@db/*": ["./database/*"]
   }
 },
   "exclude": [

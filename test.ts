@@ -1,5 +1,5 @@
-const express = require('express')
-const app = express()
+const express = require('express');
+const app = express();
 
 //app.get('/', (req, res) => res.send('Hello World!'))
 
@@ -10,9 +10,8 @@ var model = {
 	cover_url: "https://uk.webuy.com/product_images/Gaming/Playstation4%20Software/711719417576_l.jpg"
 }
 
-get('/api/offer', (req, res)=>{
+app.get('/api/offer', (req, res)=>{
             res.json(model);
 });
-
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
