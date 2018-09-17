@@ -16,6 +16,7 @@
  *
  * Created by Patrik Forsberg on 2017
  */
+
 import {SQLTableDataRow} from "./sql-table-data-row";
 import {SQLDataColumn} from "./sql-data-column";
 import {QueryResult} from "./query-result";

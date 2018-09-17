@@ -17,7 +17,7 @@
  * Created by Patrik Forsberg on 2017
  */
 
-import * as Promise from "bluebird";
+//import * as Promise from "bluebird";
 import { IConnection }            from "mysql";
 import { ISqlDataModel, SQLTableData } from "./sql-table-data";
 import { SQLTableDataRow }          from "./sql-table-data-row";
