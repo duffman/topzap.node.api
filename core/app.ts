@@ -101,10 +101,10 @@ export class App {
 	//
 	private getBidList(barcode: string): Promise<Array<ProductBidModel>> {
 		let result = new Array<ProductBidModel>();
-		let sql = `SELECT * FROM product_vendors`;
+		let sql = `SELECT * FROM product_bid WHERE barcode='${barcode}'`;
 
 		return new Promise((resolve, reject) => {
-			this.db.dbQuery(sql).then((dbRes) => {
+			return this.db.dbQuery(sql).then((dbRes) => {
 				for (let i = 0; i < dbRes.result.rowCount(); i++) {
 					let dbRow = dbRes.result.dataRows[i];
 

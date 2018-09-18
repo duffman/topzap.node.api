@@ -2,20 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="aa4df30c-d86d-4455-8dd5-5168c3da1254" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/_old_scrap.ts" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/models/product-bid-list.ts" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/models/product-bid-model.ts" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/models/search-result.ts" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/models/vendor-list.ts" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/models/vendor-model.ts" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/app.ts" afterPath="$PROJECT_DIR$/core/app.ts" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/db-result.ts" afterPath="$PROJECT_DIR$/database/db-result.ts" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/sql-table-data.ts" afterPath="$PROJECT_DIR$/database/sql-table-data.ts" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/core/app.js" afterPath="$PROJECT_DIR$/dist/core/app.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/models/product-model.js" afterPath="$PROJECT_DIR$/dist/models/product-model.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/product-model.ts" afterPath="$PROJECT_DIR$/models/product-model.ts" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/package.json" afterPath="$PROJECT_DIR$/package.json" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -82,8 +70,8 @@
       <file leaf-file-name="app.ts" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/core/app.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="295">
-              <caret line="183" column="0" lean-forward="true" selection-start-line="183" selection-start-column="0" selection-end-line="183" selection-end-column="0" />
+            <state relative-caret-position="379">
+              <caret line="103" column="73" lean-forward="false" selection-start-line="103" selection-start-column="73" selection-end-line="103" selection-end-column="73" />
               <folding>
                 <element signature="e#259#309#0" expanded="true" />
               </folding>
@@ -307,12 +295,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1536760323952</updated>
-      <workItem from="1537128602155" duration="13814000" />
+      <workItem from="1537128602155" duration="14486000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="13814000" />
+    <option name="totallyTimeSpent" value="14486000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="109" y="29" width="1649" height="994" extended-state="0" />
@@ -622,8 +610,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/app.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="295">
-          <caret line="183" column="0" lean-forward="true" selection-start-line="183" selection-start-column="0" selection-end-line="183" selection-end-column="0" />
+        <state relative-caret-position="379">
+          <caret line="103" column="73" lean-forward="false" selection-start-line="103" selection-start-column="73" selection-end-line="103" selection-end-column="73" />
           <folding>
             <element signature="e#259#309#0" expanded="true" />
           </folding>
