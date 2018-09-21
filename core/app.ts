@@ -174,6 +174,12 @@ export class App {
 	}
 
 	private init(): void {
+		this.expressApp.use(function(req, res, next) {
+			res.header("Access-Control-Allow-Origin", "*");
+			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+			next();
+		});
+
 		this.expressApp.get('/barcode/:code', (req, res) => {
 			let reqCode = req.params.code;
 			Logger.logGreen("Looking up Barcode:", reqCode);
