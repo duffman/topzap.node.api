@@ -11,7 +11,8 @@
   "paths": {
     "@core/*": ["./core/*"],
     "@models/*": ["./models/*"],
-    "@db/*": ["./database/*"]
+    "@db/*": ["./database/*"],
+    "@utils/*": ["./utils/*"]
   }
 },
   "exclude": [

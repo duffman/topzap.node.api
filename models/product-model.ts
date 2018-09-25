@@ -9,6 +9,10 @@ import {DataFieldRow} from "@db/data-row";
 import {SQLTableDataRow} from "@db/sql-table-data-row";
 
 export class ProductModel {
+	// Extended properties
+	public platformIcon: string;
+	public platformImage: string;
+
 	constructor(
 		public id: string,
 		public platformName: string,
