@@ -27,9 +27,7 @@ export class ProductDb {
 		this.init();
 	}
 
-	private init() {
-
-	}
+	private init() {}
 
 	//
 	// Get Product
@@ -147,9 +145,6 @@ export class ProductDb {
 			});
 		});
 	}
-
-
-
 
 	/**
 	 *

@@ -114,8 +114,6 @@ export class DbManager {
 		let dataTable = new SQLTableData();
 
 		return new Promise((resolve, reject) => {
-			//sql = this.mysqlRealEscapeString(sql);
-
 			this.connection.query(sql, (error, result, tableFields) => {
 				let queryResult = new DbResult();
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Patrik Forsberg <patrik.forsberg@coldmind.com> - All Rights Reserved
+ * Copyright (C) Patrik Forsberg <patrik.forsberg@coldmind.com> - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  * September 2018
@@ -12,6 +12,7 @@ import { DbManager }              from "@db/database-manager";
 import { SearchResult }           from "@models/search-result";
 import { Logger }                 from "../logger";
 import { ProductDb }              from "@core/product-db";
+import { MinerServer }            from "@miner/miner-server";
 
 export class App {
 	port = 8080;
@@ -19,10 +20,12 @@ export class App {
 	db: DbManager;
 
 	productDb: ProductDb;
+	minerServ: MinerServer;
 
 	constructor() {
 		this.db = new DbManager();
 		this.productDb = new ProductDb();
+		this.minerServ = new MinerServer();
 		this.init();
 	}
 
@@ -42,19 +45,19 @@ export class App {
 	private init(): void {
 		let app = this.expressApp;
 
+		var bodyParser = require('body-parser');
+		//app.use(bodyParser.json()); // support json encoded bodies
+		app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+
 		app.use(function(req, res, next) {
 			res.header("Access-Control-Allow-Origin", "*");
 			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 			next();
 		});
 
-
-
-
 		// TODO: MOVE TO NGINX
 		// Get Static file
 		//
-
 		app.use(express.static('public'))
 
 		app.get('/res/:filename', (req, res) => {
@@ -81,6 +84,11 @@ export class App {
 				Logger.logError("Error in test", error);
 			});
 		});
+
+		//
+		// Get Miner Session
+		//
+		this.minerServ.init(app);
 
 		app.listen(this.port);
 		console.log(`Listening on localhost: ${this.port}`);

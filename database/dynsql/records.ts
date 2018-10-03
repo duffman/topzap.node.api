@@ -42,7 +42,7 @@ export class DSelectAll implements IDRecord {
 }
 
 export class DSet implements IDRecord {
-	constructor(public column: string, public value) {}
+	constructor(public column: string, public value, public escape: boolean = true) {}
 }
 
 export class DLeftJoin implements IDRecord {

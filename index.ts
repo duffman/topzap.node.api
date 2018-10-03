@@ -16,3 +16,39 @@
  *
  * Created by Patrik Forsberg - 2018
  */
+import {MinerServer} from "@miner/miner-server";
+import {Logger} from "./logger";
+import {MinerWorkItemUpdate} from "@miner/miner-session-model";
+
+
+let minerServer = new MinerServer();
+
+
+minerServer.aquireSession(7).then((res) => {
+
+	console.log("res", res);
+
+	/*
+	let item = new MinerWorkItemUpdate(
+		4,
+		res.id,
+		true,
+		56.12,
+		"form.message"
+	);
+
+	minerServer.updateWorkItem(item).then((res) => {
+		console.log("updateWorkItem ::", res);
+	});
+	*/
+
+	/*
+	minerServer.getWorkQueue(res.id, 10).then((queue) => {
+		console.log("QUEUE", queue);
+	});
+	*/
+
+	Logger.logGreen("Session :: success :: >>");
+}).catch((err) => {
+	Logger.logError("Error getting session ::", err);
+});

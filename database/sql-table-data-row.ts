@@ -79,6 +79,16 @@ export class SQLTableDataRow {
 		return -1;
 	}
 
+	/**
+	 * Makes an optimistic attempt to parse a JS date from given string
+ 	 * @param {string} key
+	 * @returns {Date}
+	 *
+	public getValAsDate(key: string): Date {
+		return res;
+	}
+	*/
+
 	public getValAsInt(key: string): number {
 		return this.getValAsNum(key);
 	}

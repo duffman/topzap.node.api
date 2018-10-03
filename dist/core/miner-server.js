@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});class MinerServer{constructor(){}init(expressApp){expressApp.get('/miner/session/:id',(req,res)=>{let id=req.params.id;console.log('Miner Session:',id);res.set('Connection','close');res.writeHead(200,{'Content-Type':'text/plain'});res.end('Response\n');});}}exports.MinerServer=MinerServer;

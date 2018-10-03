@@ -149,7 +149,7 @@ export class DynSQL {
 		return this;
 	}
 
-	public set(column: string, value: any): DynSQL {
+	public set(column: string, value: any, escape: boolean = true): DynSQL {
 		this.records.push(new DSet(column, value));
 		return this;
 	}
@@ -430,7 +430,8 @@ export class DynSQL {
 					sql += " ,";
  				}
 
-				sql += " " + rec.column + "='" + this.prepValue(rec.value)+"'";
+ 				let val = rec.escape ? this.prepValue(rec.value) : rec.value;
+				sql += " " + rec.column + "='" + val + "'";
 
 				localCounter++;
 			}
