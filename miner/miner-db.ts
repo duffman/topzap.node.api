@@ -15,7 +15,8 @@ import { MinerWorkItemUpdate }    from "@miner/miner-session-model";
 import { MinerSessionModel}       from "@miner/miner-session-model";
 import { IDbResult }              from "@db/db-result";
 import { Guid }                   from "@utils/session-guid";
-import {DynSQL} from "@db/dynsql/dynsql";
+import { DynSQL }                 from "@db/dynsql/dynsql";
+import {Base64} from "@utils/base64";
 
 export class MinerDb {
 	db: DbManager;
@@ -106,14 +107,25 @@ export class MinerDb {
 		dynQuery.set("message", item.message);
 		dynQuery.where("price_miner_queue.id", item.id)
 
-		console.log("dynQuery ::", dynQuery.toSQL());
+		let base64 = new Base64();
+		let message = DbManager.mysqlRealEscapeString(item.message); // base64.encode(item.message);
 
 		let sql = `UPDATE price_miner_queue SET `
-			+ `accepted=${item.accepted}, `
-			+ `price='${item.price}', `
-			+ `processed_when=NOW(), `
-			+ `message='${item.message}', `
+			+ `accepted=${item.accepted}, `;
+
+
+		let strPrice: string = ''+item.price;
+
+		if (strPrice.length > 0)
+			sql = sql + `price='${item.price}', `;
+
+
+		sql = sql + `processed_when=NOW(), `
+			+ `message='${message}' `
 			+ `WHERE id=${item.id}`;
+
+		console.log("sql ::", sql);
+
 
 		return new Promise((resolve, reject) => {
 			return this.db.dbQuery(sql).then((dbRes) => {

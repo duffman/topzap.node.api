@@ -169,10 +169,11 @@ export class MinerServer {
 		//
 		// Get Queued Work Items
 		//
-		expressApp.get("/miner/queue/:id", (req, res) => {
+		expressApp.get("/miner/queue/:id/:size", (req, res) => {
 			let sessionId = Number(req.params.id);
+			let size = req.params.size != null ? Number(req.params.size): 10;
 
-			scope.getWorkQueue(sessionId, 10).then((queueItems) => {
+			scope.getWorkQueue(sessionId, 100).then((queueItems) => {
 				res.json(queueItems);
 
 			}).catch((err: Error) => {
@@ -206,14 +207,12 @@ export class MinerServer {
 			console.log('');
 			console.log('');
 
-			/*
 			this.minerDb.updateWorkQueue(item).then((result) => {
 				Logger.logCyan("updateWorkQueue ::", result);
 			}).catch((err) => {
 				Logger.logError("Error updating work item ::", err);
 				this.internalError(res, err.message);
 			});
-			*/
 		});
 	}
 }

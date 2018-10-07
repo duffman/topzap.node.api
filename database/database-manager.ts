@@ -82,10 +82,11 @@ export class DbManager {
 			value = '';
 
 		value = value.replace('"', '\"');
+		value = value.replace("'", '\"');
 		return value;
 	}
 
-	public mysqlRealEscapeString(str: string): string {
+	public static mysqlRealEscapeString(str: string): string {
 		return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) {
 			switch (char) {
 				case "\0":
