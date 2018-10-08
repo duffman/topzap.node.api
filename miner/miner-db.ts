@@ -24,6 +24,16 @@ export class MinerDb {
 	constructor() {
 		this.db = new DbManager();
 		this.init();
+
+		let dynQuery = new DynSQL();
+
+		let data = {
+			name: String("mitt namn"),
+			type: 12
+		};
+
+		let sql = dynQuery.insert(data, "product_vendors").toSQL();
+		console.log("SQL ::", sql);
 	}
 
 	private init() {}
@@ -49,8 +59,18 @@ export class MinerDb {
 	// Get Product
 	// - extended adds pltform image info
 	//
-
 	public getWorkQueue(sessionId: number, size: number = -1): Promise<Array<MinerWorkItemSlim>> {
+		//
+		// If the barcode is shorter than 13, add a ZERO
+		// The reason to why we need this is unknown...
+		//
+		function prepBarcode(barcode: string): string {
+			if (barcode.length == 12) {
+				return "0" + barcode;
+			}
+			return barcode
+		}
+
 		let sql = `SELECT * FROM price_miner_queue WHERE session_id=${sessionId} AND processed_when IS NULL`;  //SELECT * FROM price_miner_queue vendor_id=${sessionId} AND processed_when IS NULL`;
 		if (size > -1) {
 			sql = sql + ` LIMIT ${size}`
@@ -77,7 +97,7 @@ export class MinerDb {
 
 					let model = new MinerWorkItemSlim(
 						dbRow.getValAsInt("id"),
-						dbRow.getValAsStr("barcode")
+						prepBarcode(dbRow.getValAsStr("barcode"))
 					);
 
 					result.push(model);
@@ -89,6 +109,27 @@ export class MinerDb {
 				Logger.logError("getWorkQueue :: error ::", error);
 				reject(error);
 			});
+		});
+	}
+
+	public addVendor(name: string, type: number = -1): Promise<IDbResult> {
+		let dynQuery = new DynSQL();
+
+		let data = {
+			name: name,
+			type: type
+		};
+
+		let sql = dynQuery.insert(data, "product_vendors").toSQL();
+
+		console.log("ADD VENDOR SQL >> ", sql);
+
+		return new Promise((resolve, reject) => {
+			/*return this.db.dbQuery(sql).then((dbRes) => {
+				resolve(dbRes);
+			}).catch((error) => {
+				reject(error)
+			})*/
 		});
 	}
 

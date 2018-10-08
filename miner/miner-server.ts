@@ -39,6 +39,18 @@ export class MinerServer {
 		});
 	}
 
+	public addVendor(name: string, type: number): Promise<boolean> {
+		let scope = this;
+
+		return new Promise((resolve, reject) => {
+			return scope.minerDb.addVendor(name, type).then((result) => {
+				resolve(result.success);
+			}).catch((err) => {
+				reject(err);
+			});
+		});
+	}
+
 	public updateWorkItem(item: MinerWorkItemUpdate): Promise<boolean> {
 		let scope = this;
 
@@ -56,7 +68,7 @@ export class MinerServer {
 	 * @param {number} vendorId
 	 * @returns {Promise<MinerSessionModel>}
 	 */
-	public aquireSession(vendorId: number): Promise<MinerSessionModel> {
+	public aquireSession(vendorId: number, minerName: string): Promise<MinerSessionModel> {
 		let scope = this;
 		let sessionData: MinerSessionModel;
 
@@ -102,7 +114,7 @@ export class MinerServer {
 			});
 		}
 
-		async function getSession(vendorId: number): Promise<void> {
+		async function getSession(vendorId: number, minerName: string): Promise<void> {
 			console.log("getSession ------>");
 
 			let haveSession: boolean = await haveMinerSession(vendorId);
@@ -113,16 +125,15 @@ export class MinerServer {
 				sessionData = await getMinerSession(vendorId);
 
 			} else {
-				console.log("DONT Have session!!");
+				Logger.logYellow(`Miner Session for Vendor Id "${vendorId}" Does NOT exist!`);
 
-				let newSessionRes: IDbResult = await createSession(vendorId, "test-miner");
+				let newSessionRes: IDbResult = await createSession(vendorId, minerName);
 
 				if (!newSessionRes.success) {
 					return;
 				}
 
-				console.log("Create session SUCCESS!!");
-				console.log("Create session :: newSessionRes ::", newSessionRes);
+				Logger.logGreen("Create session :: newSessionRes ::", newSessionRes);
 
 				let sessionId = newSessionRes.lastInsertId;
 
@@ -134,7 +145,7 @@ export class MinerServer {
 		}
 
 		return new Promise((resolve, reject) => {
-			getSession(vendorId).then((session) => {
+			getSession(vendorId, minerName).then((session) => {
 				resolve(sessionData);
 			}).catch((err) => {
 				Logger.logError("aquireSession :: error ::", err);
@@ -153,11 +164,14 @@ export class MinerServer {
 		//
 		// Get Miner Session
 		//
-		expressApp.get('/miner/session/:id', (req, res) => {
+		expressApp.get('/miner/session/:id/:name?', (req, res) => {
 			let id = Number(req.params.id);
-			console.log("Miner Session:", id);
+			let name = req.params.name != null ? req.params.name: "NAME_UNSET";
 
-			scope.aquireSession(id).then((session) => {
+			Logger.logCyan("Miner Session ::", id);
+			Logger.logCyan("Miner Name ::", name);
+
+			scope.aquireSession(id, name).then((session) => {
 				res.json(session);
 
 			}).catch((err: Error) => {
@@ -169,11 +183,11 @@ export class MinerServer {
 		//
 		// Get Queued Work Items
 		//
-		expressApp.get("/miner/queue/:id/:size", (req, res) => {
+		expressApp.get("/miner/queue/:id/:size?", (req, res) => {
 			let sessionId = Number(req.params.id);
 			let size = req.params.size != null ? Number(req.params.size): 10;
 
-			scope.getWorkQueue(sessionId, 100).then((queueItems) => {
+			scope.getWorkQueue(sessionId, size).then((queueItems) => {
 				res.json(queueItems);
 
 			}).catch((err: Error) => {
@@ -203,12 +217,12 @@ export class MinerServer {
 			);
 
 			Logger.logGreen("item ::", item);
-
-			console.log('');
-			console.log('');
+			Logger.spit();
 
 			this.minerDb.updateWorkQueue(item).then((result) => {
 				Logger.logCyan("updateWorkQueue ::", result);
+				res.json(result);
+
 			}).catch((err) => {
 				Logger.logError("Error updating work item ::", err);
 				this.internalError(res, err.message);

@@ -24,7 +24,7 @@ import {MinerWorkItemUpdate} from "@miner/miner-session-model";
 let minerServer = new MinerServer();
 
 
-minerServer.aquireSession(7).then((res) => {
+minerServer.aquireSession(7, "Test").then((res) => {
 
 	console.log("res", res);
 
