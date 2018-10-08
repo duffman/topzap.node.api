@@ -18,7 +18,6 @@
  */
 
 import * as mysql                 from "mysql";
-//import { IConnection }            from "mysql";
 import { DataSheet }              from "./data-sheet";
 import { SQLTableData }           from "./sql-table-data";
 import { IDbResult }              from "./db-result";
