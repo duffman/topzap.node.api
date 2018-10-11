@@ -28,6 +28,18 @@ import { Logger }                 from "../logger";
 
 const log = console.log;
 
+
+export interface IOkPacket {
+	fieldCount: number;
+	affectedRows: number;
+	insertId: number;
+	serverStatus: number;
+	warningCount: number;
+	message: string;
+	protocol41: boolean;
+	changedRows: number;
+}
+
 export interface IQuerySheetCallback {
 	(sheet: DataSheet);
 }
@@ -110,44 +122,136 @@ export class DbManager {
 		});
 	}
 
-	public dbQuery(sql: string): Promise<IDbResult> {
-		let dataTable = new SQLTableData();
-
+	private parseMysqlQueryResult(error, result, tableFields): Promise<IDbResult> {
 		return new Promise((resolve, reject) => {
-			this.connection.query(sql, (error, result, tableFields) => {
-				let queryResult = new DbResult();
+			let queryResult = new DbResult();
 
-				if (error) {
-					queryResult.success = false;
-					queryResult.error = error;
+			if (error) {
+				queryResult.success = false;
+				queryResult.error = error;
 
-					if (error.errno == 1062) {
-						//log("** Duplicate entry")
-					} else {
-						Logger.logErrorMessage("dbQuery :: Error ::", error.errno);
-					}
-
-					//reject(error);
-					resolve(queryResult);
-					return;
+				if (error.errno == 1062) {
+					//log("** Duplicate entry")
 				} else {
-					queryResult.affectedRows = result.affectedRows;
-					queryResult.lastInsertId = result.insertId;
+					Logger.logErrorMessage("dbQuery :: Error ::", error.errno);
+				}
 
-					sql = mysql.escape(sql);
+				//reject(error);
+				resolve(queryResult);
+				return;
+			} else {
+				queryResult.affectedRows = result.affectedRows;
+				queryResult.lastInsertId = result.insertId;
 
-					let data = new SQLTableData();
-					data.parseResultSet(result, tableFields).then((res) => {
-						queryResult.result = res;
-						resolve(queryResult);
+				let data = new SQLTableData();
+				data.parseResultSet(result, tableFields).then((res) => {
+					queryResult.result = res;
+					resolve(queryResult);
+				}).catch((err) => {
+					reject(err);
+				});
+			}
+		});
+	}
+
+	public runInTransaction(sql: string): Promise<IDbResult> {
+		let scope = this;
+		let result: IDbResult;
+		let executeError: Error = null;
+
+		function beginTransaction(): Promise<IOkPacket> {
+			return new Promise((resolve, reject) => {
+				scope.connection.query("START TRANSACTION", (error, result) => {
+					if (!error) {
+						resolve(result);
+					}
+					else {
+						reject(error);
+					}
+				});
+			});
+		}
+
+		function executeSql(sql: string): Promise<IDbResult> {
+			return new Promise((resolve, reject) => {
+				scope.connection.query(sql, (error, result, tableFields) => {
+					scope.parseMysqlQueryResult(error, result, tableFields).then((res) => {
+						resolve(res);
 					}).catch((err) => {
 						reject(err);
 					});
+				});
+			});
+		}
 
+		function commit(): Promise<boolean> {
+			return new Promise((resolve, reject) => {
+				scope.connection.query("COMMIT", (error, result) => {
+					console.log("error ::", error);
+					console.log("result ::", result);
+					if (!error) {
+						resolve(result);
+					}
+					else {
+						reject(error);
+					}
+				});
+			});
+		}
+
+		function rollback(): Promise<boolean> {
+			return new Promise((resolve, reject) => {
+				scope.connection.query("ROLLBACK", (error, result) => {
+					console.log("error ::", error);
+					console.log("result ::", result);
+					if (!error) {
+						resolve(result);
+					}
+					else {
+						reject(error);
+					}
+				});
+			});
+		}
+
+		async function execute(): Promise<void> {
+			let beginTransRes = await beginTransaction();
+
+			try {
+				result = await executeSql(sql);
+				await commit();
+
+			} catch(err) {
+				let transError  = err != null ? err : new Error("SQL Execution failed");
+				executeError = transError;
+			}
+
+			if (executeError != null || !result.success) {
+				await rollback();
+			}
+		}
+
+		return new Promise((resolve, reject) => {
+			execute().then(() => {
+				if (executeError != null) {
+					reject(executeError)
+				}
+				else {
+					resolve(result);
 				}
 			});
+		});
+	}
 
-			//resolve(null);
-		}); // new Promise
+	public dbQuery(sql: string): Promise<IDbResult> {
+		return new Promise((resolve, reject) => {
+			this.connection.query(sql, (error, result, tableFields) => {
+				this.parseMysqlQueryResult(error, result, tableFields).then((res) => {
+					resolve(res);
+				}).catch((err) => {
+					reject(err);
+				});
+			});
+		});
 	}
 }

@@ -58,7 +58,7 @@ export class App {
 		// TODO: MOVE TO NGINX
 		// Get Static file
 		//
-		app.use(express.static('public'))
+		app.use(express.static('public'));
 
 		app.get('/res/:filename', (req, res) => {
 			let filename = req.params.code;

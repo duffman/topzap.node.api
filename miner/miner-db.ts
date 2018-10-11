@@ -5,18 +5,18 @@
  * September 2018
  */
 
-import * as Promise               from "bluebird";
+//import * as Promise from "bluebird";
 import { DbManager }              from "@db/database-manager";
-import { GLog }                   from "../zap-log";
 import { Logger }                 from "../logger";
 import { IMinerWorkItem }         from "@miner/miner-session-model";
-import { MinerWorkItemSlim }      from "@miner/miner-session-model";
+import { MinerWorkItem }      from "@miner/miner-session-model";
 import { MinerWorkItemUpdate }    from "@miner/miner-session-model";
 import { MinerSessionModel}       from "@miner/miner-session-model";
 import { IDbResult }              from "@db/db-result";
 import { Guid }                   from "@utils/session-guid";
 import { DynSQL }                 from "@db/dynsql/dynsql";
-import {Base64} from "@utils/base64";
+import { Base64 }                 from "@utils/base64";
+import { WorkerItemList }         from "@miner/miner-types";
 
 export class MinerDb {
 	db: DbManager;
@@ -55,19 +55,18 @@ export class MinerDb {
 		});
 	}
 
-		//
+	//
 	// Get Product
 	// - extended adds pltform image info
 	//
-	public getWorkQueue(sessionId: number, size: number = -1): Promise<Array<MinerWorkItemSlim>> {
+	public getWorkQueue(sessionId: number, size: number = -1): Promise<WorkerItemList> {
 		//
 		// If the barcode is shorter than 13, add a ZERO
 		// The reason to why we need this is unknown...
-		//
 		function prepBarcode(barcode: string): string {
-			if (barcode.length == 12) {
+			/*if (barcode.length == 12) {
 				return "0" + barcode;
-			}
+			}*/
 			return barcode
 		}
 
@@ -75,8 +74,6 @@ export class MinerDb {
 		if (size > -1) {
 			sql = sql + ` LIMIT ${size}`
 		}
-
-		console.log("SQL", sql);
 
 		return new Promise((resolve, reject) => {
 			return this.db.dbQuery(sql).then((dbRes) => {
@@ -95,7 +92,7 @@ export class MinerDb {
 					);
 					*/
 
-					let model = new MinerWorkItemSlim(
+					let model = new MinerWorkItem(
 						dbRow.getValAsInt("id"),
 						prepBarcode(dbRow.getValAsStr("barcode"))
 					);
@@ -108,6 +105,33 @@ export class MinerDb {
 			}).catch((error) => {
 				Logger.logError("getWorkQueue :: error ::", error);
 				reject(error);
+			});
+		});
+	}
+
+	public checkOutWorkQueue(sessionId: number, size: number = 10): Promise<IDbResult> {
+		let scope = this;
+
+		return new Promise((resolve, reject) => {
+			scope.getWorkQueue(sessionId, size).then((workItems) => {
+				let idList = new Array<string>();
+
+				for (let i = 0; i < workItems.length; i++) {
+					let item = workItems[i];
+					let entry = `id=${item.id}`;
+					idList.push(entry);
+				}
+
+				let sql = "UPDATE price_miner_queue SET checkout_time=NOW() WHERE " + idList.join(" OR ");
+
+				console.log(sql);
+
+				scope.db.dbQuery(sql).then((res) => {
+					resolve(res);
+
+				}).catch((err) => {
+					reject(err);
+				})
 			});
 		});
 	}
@@ -144,6 +168,7 @@ export class MinerDb {
 		dynQuery.update("price_miner_queue");
 		dynQuery.set("accepted", item.accepted);
 		dynQuery.set("price", item.price);
+		dynQuery.set("title", item.title);
 		dynQuery.set("processed_when", item.price, false);
 		dynQuery.set("message", item.message);
 		dynQuery.where("price_miner_queue.id", item.id)
@@ -154,19 +179,17 @@ export class MinerDb {
 		let sql = `UPDATE price_miner_queue SET `
 			+ `accepted=${item.accepted}, `;
 
+		sql = sql + `title='${item.title}', `;
 
 		let strPrice: string = ''+item.price;
-
 		if (strPrice.length > 0)
 			sql = sql + `price='${item.price}', `;
 
-
 		sql = sql + `processed_when=NOW(), `
 			+ `message='${message}' `
-			+ `WHERE id=${item.id}`;
+			+ `WHERE id=${item.id} AND session_id=${item.sessionId}`;
 
-		console.log("sql ::", sql);
-
+		Logger.logGreen("updateWorkQueue :: sql ::", sql);
 
 		return new Promise((resolve, reject) => {
 			return this.db.dbQuery(sql).then((dbRes) => {
@@ -199,7 +222,7 @@ export class MinerDb {
 					resolve(model);
 
 				} else {
-					resolve(new Error("Empty result set"))					;
+					reject(new Error("Empty result set"))					;
 				}
 			}).catch((error) => {
 				Logger.logError("getMinerSession :: error ::", error);
@@ -213,7 +236,7 @@ export class MinerDb {
 	//
 	public createMinerSession(vendorId: Number, minerName: string = "<noname>"): Promise<IDbResult> {
 		let sql = `INSERT INTO price_miner_session (session_key, vendor_id, miner_name, created) `
-					+ `VALUES ("${Guid.newGuid()}", ${vendorId}, "${minerName}", NOW())`;
+			+ `VALUES ("${Guid.newGuid()}", ${vendorId}, "${minerName}", NOW())`;
 
 		console.log("SQL", sql);
 

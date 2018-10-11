@@ -20,7 +20,7 @@ export interface IMinerWorkItem {
 	barcode: string;
 }
 
-export class MinerWorkItem implements IMinerWorkItem {
+export class MinerWorkItemExt implements IMinerWorkItem {
 	constructor(
 		public id: number,
 		public sessionId: number,
@@ -36,13 +36,13 @@ export class MinerWorkItemUpdate {
 		public id: number,
 		public sessionId: number,
 		public accepted: boolean,
+		public title: string,
 		public price: number,
 		public message: string
 	) {}
 }
 
-
-export class MinerWorkItemSlim implements IMinerWorkItem {
+export class MinerWorkItem implements IMinerWorkItem {
 	constructor(
 		public id: number,
 		public barcode: string,

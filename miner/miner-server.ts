@@ -104,7 +104,7 @@ export class MinerServer {
 			});
 		}
 
-		function createMinerQueue(sessionId: Number): Promise<IDbResult> {
+		function createMinerQueue(sessionId: Number): Promise<boolean> {
 			return new Promise((resolve, reject) => {
 				return scope.minerDb.createMinerQueue(sessionId).then((result) => {
 					resolve(result);
@@ -204,7 +204,9 @@ export class MinerServer {
 
 			let form = req.body;
 			Logger.logCyan("form.itemId", form.itemId);
+			Logger.logCyan("form.sessionId", form.sessionId);
 			Logger.logCyan("form.accepted", form.accepted);
+			Logger.logCyan("form.title", form.title);
 			Logger.logCyan("form.price", form.price);
 			Logger.logCyan("form.message", form.message);
 
@@ -212,6 +214,7 @@ export class MinerServer {
 				form.id,
 				form.sessionId,
 				form.accepted,
+				form.title,
 				form.price,
 				form.message
 			);
