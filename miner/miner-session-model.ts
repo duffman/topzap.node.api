@@ -42,6 +42,14 @@ export class MinerWorkItemUpdate {
 	) {}
 }
 
+export class WorkItemUpdateRes {
+	constructor(
+		public itemId: number,
+		public sessionId: number,
+		public success: boolean
+	) {}
+}
+
 export class MinerWorkItem implements IMinerWorkItem {
 	constructor(
 		public id: number,

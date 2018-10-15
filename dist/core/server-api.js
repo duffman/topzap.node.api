@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});class ServerApi{internalError(res,message=''){res.writeHead(501,{'Content-Type':'text/plain'});res.end(message);}}exports.ServerApi=ServerApi;

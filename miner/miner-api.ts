@@ -5,19 +5,22 @@
  * September 2018
  */
 
+import { Logger }                 from "../logger";
+import { ServerApi }              from "@core/server-api";
 import { Express }                from "express";
 import { Request, Response }      from 'express';
 import { MinerDb}                 from "@miner/miner-db";
 import { IMinerWorkItem }         from "@miner/miner-session-model";
+import { WorkItemUpdateRes }      from "@miner/miner-session-model";
 import { MinerWorkItemUpdate}     from "@miner/miner-session-model";
 import { MinerSessionModel }      from "@miner/miner-session-model";
 import { IDbResult }              from "@db/db-result";
-import { Logger }                 from "../logger";
 
-export class MinerServer {
+export class MinerServerApi extends ServerApi {
 	minerDb: MinerDb;
 
 	constructor() {
+		super();
 		this.minerDb = new MinerDb();
 	}
 
@@ -57,6 +60,23 @@ export class MinerServer {
 		return new Promise((resolve, reject) => {
 			return scope.minerDb.updateWorkQueue(item).then((result) => {
 				resolve(result.success);
+			}).catch((err) => {
+				reject(err);
+			});
+		});
+	}
+
+	/**
+	 * Marks Miner Session as completed
+	 * @param {number} sessionId
+	 * @param {number} vendorId
+	 * @returns {Promise<boolean>}
+	 */
+	public setSessionDone(sessionId: number, vendorId: number): Promise<boolean> {
+		let scope = this;
+		return new Promise((resolve, reject) => {
+			return scope.minerDb.setSessionDone(sessionId, vendorId).then((result) => {
+				resolve(result);
 			}).catch((err) => {
 				reject(err);
 			});
@@ -153,11 +173,6 @@ export class MinerServer {
 		});
 	}
 
-	private internalError(res: Response, message: string) {
-		res.writeHead(501, {'Content-Type': 'text/plain'});
-		res.end(message);
-	}
-
 	public init(expressApp: Express) {
 		let scope = this;
 
@@ -181,18 +196,36 @@ export class MinerServer {
 		});
 
 		//
+		// Set Session Completed
+		//
+		expressApp.post("/miner/session/done", (req, resp) => {
+			Logger.logGreen("Miner Update", req.body);
+
+			let form = req.body;
+			Logger.logCyan("form.sessionId", form.sessionId);
+			Logger.logCyan("form.vendorId", form.vendorId);
+
+			scope.setSessionDone(form.sessionId, form.vendorId).then((res) => {
+				resp.json(res);
+
+			}).catch((err: Error) => {
+				scope.internalError(resp);
+			});
+		});
+
+		//
 		// Get Queued Work Items
 		//
-		expressApp.get("/miner/queue/:id/:size?", (req, res) => {
+		expressApp.get("/miner/queue/:id/:size?", (req, resp) => {
 			let sessionId = Number(req.params.id);
 			let size = req.params.size != null ? Number(req.params.size): 10;
 
 			scope.getWorkQueue(sessionId, size).then((queueItems) => {
-				res.json(queueItems);
+				resp.json(queueItems);
 
 			}).catch((err: Error) => {
-				res.writeHead(501, {'Content-Type': 'text/plain'});
-				res.end(err.message);
+				resp.writeHead(501, {'Content-Type': 'text/plain'});
+				resp.end(err.message);
 			});
 		});
 
@@ -223,8 +256,17 @@ export class MinerServer {
 			Logger.spit();
 
 			this.minerDb.updateWorkQueue(item).then((result) => {
-				Logger.logCyan("updateWorkQueue ::", result);
-				res.json(result);
+				Logger.logCyan("updateWorkQueue ::", result.success);
+
+				let success = result.success && result.affectedRows > 0;
+
+				let updateRes = new WorkItemUpdateRes(
+					form.id,
+					form.sessionId,
+					success
+				);
+
+				res.json(updateRes);
 
 			}).catch((err) => {
 				Logger.logError("Error updating work item ::", err);

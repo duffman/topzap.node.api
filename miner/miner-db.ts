@@ -5,6 +5,13 @@
  * September 2018
  */
 
+
+/*
+
+UPDATE `price_miner_queue` SET processed_when = NULL WHERE `session_id` = 30 AND processed_when >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
+
+ */
+
 //import * as Promise from "bluebird";
 import { DbManager }              from "@db/database-manager";
 import { Logger }                 from "../logger";
@@ -70,7 +77,7 @@ export class MinerDb {
 			return barcode
 		}
 
-		let sql = `SELECT * FROM price_miner_queue WHERE session_id=${sessionId} AND processed_when IS NULL`;  //SELECT * FROM price_miner_queue vendor_id=${sessionId} AND processed_when IS NULL`;
+		let sql = `SELECT * FROM price_miner_queue WHERE session_id=${sessionId} AND processed_when IS NULL ORDER BY RAND()`;  //SELECT * FROM price_miner_queue vendor_id=${sessionId} AND processed_when IS NULL`;
 		if (size > -1) {
 			sql = sql + ` LIMIT ${size}`
 		}
@@ -201,7 +208,7 @@ export class MinerDb {
 	}
 
 	public getMinerSession(vendorId: Number): Promise<MinerSessionModel> {
-		let sql = `SELECT * FROM price_miner_session WHERE vendor_id=${vendorId} AND completed=0`;
+		let sql = `SELECT * FROM price_miner_session WHERE vendor_id=${vendorId} AND completed IS NULL`;
 
 		return new Promise((resolve, reject) => {
 			return this.db.dbQuery(sql).then((dbRes) => {
@@ -244,7 +251,24 @@ export class MinerDb {
 			return this.db.dbQuery(sql).then((dbRes) => {
 				resolve(dbRes);
 			}).catch((error) => {
-				Logger.logError("Error Gettings Vendors", error);
+				Logger.logError("createMinerSession", error);
+				reject(error);
+			});
+		});
+	}
+
+	//
+	// Mark Session As Co
+	//
+	public setSessionDone(sessionId: number, vendorId: number): Promise<boolean> {
+		let sql = `UPDATE price_miner_session SET completed=NOW() WHERE id=${sessionId} AND vendor_id=${vendorId} AND completed IS NULL`;
+
+		return new Promise((resolve, reject) => {
+			return this.db.dbQuery(sql).then((dbRes) => {
+				let success = dbRes.affectedRows > 0;
+				resolve(success);
+			}).catch((error) => {
+				Logger.logError("setSessionDone", error);
 				reject(error);
 			});
 		});

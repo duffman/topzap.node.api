@@ -16,12 +16,12 @@
  *
  * Created by Patrik Forsberg - 2018
  */
-import {MinerServer} from "@miner/miner-server";
+import {MinerServerApi} from "@miner/miner-api";
 import {Logger} from "./logger";
 import {MinerWorkItemUpdate} from "@miner/miner-session-model";
 
 
-let minerServer = new MinerServer();
+let minerServer = new MinerServerApi();
 
 
 minerServer.aquireSession(7, "Test").then((res) => {

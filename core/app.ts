@@ -11,8 +11,10 @@ import * as Promise               from "bluebird";
 import { DbManager }              from "@db/database-manager";
 import { SearchResult }           from "@models/search-result";
 import { Logger }                 from "../logger";
-import { ProductDb }              from "@core/product-db";
-import { MinerServer }            from "@miner/miner-server";
+import { ProductDb }              from "@core/../product-api/product-db";
+import { MinerServerApi }            from "@miner/miner-api";
+
+let bodyParser = require("body-parser");
 
 export class App {
 	port = 8080;
@@ -20,12 +22,12 @@ export class App {
 	db: DbManager;
 
 	productDb: ProductDb;
-	minerServ: MinerServer;
+	minerServ: MinerServerApi;
 
-	constructor() {
+	constructor(public minerApi: boolean = false) {
 		this.db = new DbManager();
 		this.productDb = new ProductDb();
-		this.minerServ = new MinerServer();
+		this.minerServ = new MinerServerApi();
 		this.init();
 	}
 
@@ -45,7 +47,9 @@ export class App {
 	private init(): void {
 		let app = this.expressApp;
 
-		var bodyParser = require('body-parser');
+		// set the view engine to ejs
+		app.set('view engine', 'ejs');
+
 		//app.use(bodyParser.json()); // support json encoded bodies
 		app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
@@ -53,6 +57,11 @@ export class App {
 			res.header("Access-Control-Allow-Origin", "*");
 			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 			next();
+		});
+
+
+		app.get('/minerstats', function(req, res) {
+			res.render('pages/minerstats', {data: "Kalle Kula"});
 		});
 
 		// TODO: MOVE TO NGINX
@@ -86,16 +95,19 @@ export class App {
 		});
 
 		//
-		// Get Miner Session
+		// Miner Api Endpoint
 		//
-		this.minerServ.init(app);
+		if (this.minerApi) {
+			this.minerServ.init(app);
+		}
 
 		app.listen(this.port);
 		console.log(`Listening on localhost: ${this.port}`);
 	}
 }
 
-let app = new App();
+let minerApi = true;
+let app = new App(minerApi);
 
 /*
 app.test("045496590451").then((result) => {
