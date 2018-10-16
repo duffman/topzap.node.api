@@ -10,6 +10,28 @@ import {DynSQL} from "@db/dynsql/dynsql";
 import {Logger} from "../logger";
 import {IDbResult} from "@db/db-result";
 
+export class ProgressRec {
+	constructor(public totalCount: number,
+				public successCount: number,
+				public processedCount: number
+	) {}
+}
+
+export class MinerStatucRec {
+	constructor(
+				public sessionId: number,
+				public minerName: string,
+				public vendorId: number,
+				public sessionKey: string,
+				public completed: string,
+				public totalCount: number,
+				public successCount: number,
+				public processedCount: number,
+				public percentDone: number
+	) {}
+}
+
+
 export class MinerStatus {
 	db: DbManager;
 
@@ -20,12 +42,14 @@ export class MinerStatus {
 	public getSessionInfo(): Promise<IDbResult> {
 		let dynSql = new DynSQL();
 
-		let sql = dynSql.select("ms.id", "ms.session_key", "ms.completed", "pv.name")
+		let sql = dynSql.select("ms.id", "ms.session_key", "ms.completed", "pv.id AS pv_id", "pv.name")
 			.from("price_miner_session", "ms")
 			.from("product_vendors", "pv")
 			.where(
-				"pv.id", "ms.vendor_id"
+				"pv.id", "ms.vendor_id", false
 			).toSQL();
+
+		console.log(sql);
 
 		return new Promise((resolve, reject) => {
 			return this.db.dbQuery(sql).then((dbRes) => {
@@ -54,18 +78,32 @@ export class MinerStatus {
 
 		function getSessionDbRes(): Promise<IDbResult> {
 			return new Promise((resolve, reject) => {
-				return scope.getSessionInfo();
+				return scope.getSessionInfo().then((dbRes) => {
+					resolve(dbRes);
+				}).catch((error) => {
+					Logger.logError("getMinerSession :: error ::", error);
+					reject(error);
+				});
 			});
 		}
 
-		function getSessionData(sessionId: number): Promise<IDbResult> {
-			let sql = `SELECT (SELECT COUNT(*) FROM price_miner_queue WHERE session_id = ${sessionId}) AS total,
-			(SELECT COUNT(*) FROM price_miner_queue WHERE session_id = ${sessionId} AND processed_when IS NOT NULL AND price > -1) AS sucessCount,
+		function getSessionProg(sessionId: number): Promise<ProgressRec> {
+			let sql = `SELECT (SELECT COUNT(*) FROM price_miner_queue WHERE session_id = ${sessionId}) AS totalCount,
+			(SELECT COUNT(*) FROM price_miner_queue WHERE session_id = ${sessionId} AND processed_when IS NOT NULL AND price > -1) AS successCount,
 			(SELECT COUNT(*) FROM price_miner_queue WHERE session_id = ${sessionId} AND processed_when IS NOT NULL) AS processedCount`;
 
 			return new Promise((resolve, reject) => {
-				return this.db.dbQuery(sql).then((dbRes) => {
-					resolve(dbRes);
+				return scope.db.dbQuery(sql).then((dbRes) => {
+					let row = dbRes.safeGetFirstRow();
+
+					let result = new ProgressRec(
+						row.getValAsNum("totalCount"),
+						row.getValAsNum("successCount"),
+						row.getValAsNum("processedCount")
+					);
+
+					resolve(result);
+
 				}).catch((error) => {
 					Logger.logError("getMinerSession :: error ::", error);
 					reject(error);
@@ -77,8 +115,46 @@ export class MinerStatus {
 			let sessionInfo = await getSessionDbRes();
 
 			for (let i = 0; i < sessionInfo.result.rowCount(); i++) {
+				let row = sessionInfo.result.dataRows[i];
 
+				/*
+				public sessionId: number,
+				public minerName: string,
+				public vendorId: number,
+				public sessionKey: string,
+				public totalCount: number,
+				public successCount: number,
+				public processedCount: number,
+				public percentDone: number
+
+				 */
+
+				let sessId = row.getValAsNum("id");
+				let name = row.getValAsStr("name");
+				let vendorId = row.getValAsNum("pv_id");
+				let sessKey = row.getValAsStr("session_key");
+				let completed = row.getValAsStr("completed");
+
+				let progRec = await getSessionProg(sessId);
+
+				let percentDone = (progRec.processedCount / progRec.totalCount ) * 100;
+
+				let statusRec = new MinerStatucRec(
+					sessId,
+					name,
+					vendorId,
+					sessKey,
+					completed,
+					progRec.totalCount,
+					progRec.successCount,
+					progRec.processedCount,
+					percentDone
+				);
+
+				console.log("statusRec", statusRec);
 			}
+
+			scope.db.close();
 		}
 
 		return new Promise((resolve, reject) => {

@@ -4,6 +4,7 @@
  * Proprietary and confidential
  * September 2018
  */
+import {MinerStatus} from "@miner/miner-status";
 
 const express = require("express");
 
@@ -61,6 +62,9 @@ export class App {
 
 
 		app.get('/minerstats', function(req, res) {
+			let stat = new MinerStatus();
+			stat.getProgressInfo();
+
 			res.render('pages/minerstats', {data: "Kalle Kula"});
 		});
 

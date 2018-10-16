@@ -1,3 +1,5 @@
+import {MinerStatus} from "@miner/miner-status";
+
 const express = require('express');
 const app = express();
 
@@ -5,6 +7,7 @@ const app = express();
 
 //error
 
+/*
 
 var model = {
 	product: "Kalle",
@@ -17,3 +20,10 @@ app.get('/api/offer', (req, res)=>{
 });
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
+
+
+*/
+
+let stat = new MinerStatus();
+let info = stat.getProgressInfo();
+
