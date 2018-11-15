@@ -42,6 +42,16 @@ export class MinerWorkItemUpdate {
 	) {}
 }
 
+export class MinerErrorLogEntry  {
+	constructor(
+		public queueId: number,
+		public vendorId: number,
+		public sessionId: number,
+		public message: string,
+		public errorMessage: string
+	) {}
+}
+
 export class WorkItemUpdateRes {
 	constructor(
 		public itemId: number,

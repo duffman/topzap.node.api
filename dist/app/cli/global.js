@@ -1,5 +1,6 @@
+"use strict";
 /**
- * Patrik Forsberg ("CREATOR") CONFIDENTIAL
+ * Patrik Forsberg <patrik.forsberg@coldmind.com> ("CREATOR") CONFIDENTIAL
  * Unpublished Copyright (c) 2015-2018 Patrik Forsberg, All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains the property of CREATOR. The intellectual and technical concepts contained
@@ -16,38 +17,19 @@
  *
  * Created by Patrik Forsberg - 2018
  */
-
-import { MinerWorkItemUpdate }    from "@miner/miner-session-model";
-import { MinerServerApi }         from "@api/miner-api";
-import { Logger }                 from "@cli/logger";
-
-let minerServer = new MinerServerApi();
-
-minerServer.aquireSession(7, "Test").then((res) => {
-
-	console.log("res", res);
-
-	/*
-	let item = new MinerWorkItemUpdate(
-		4,
-		res.id,
-		true,
-		56.12,
-		"form.message"
-	);
-
-	minerServer.updateWorkItem(item).then((res) => {
-		console.log("updateWorkItem ::", res);
-	});
-	*/
-
-	/*
-	minerServer.getWorkQueue(res.id, 10).then((queue) => {
-		console.log("QUEUE", queue);
-	});
-	*/
-
-	Logger.logGreen("Session :: success :: >>");
-}).catch((err) => {
-	Logger.logError("Error getting session ::", err);
-});
+Object.defineProperty(exports, "__esModule", { value: true });
+var Global;
+(function (Global) {
+    Global.VerboseDevDebug = false;
+    Global.DebugMode = false;
+    let Settings;
+    (function (Settings) {
+        let Database;
+        (function (Database) {
+            Database.dbName = "topzap-prod";
+            Database.dbHost = "localhost";
+            Database.dbUser = "duffman";
+            Database.dbPass = "bjoe7151212";
+        })(Database = Settings.Database || (Settings.Database = {}));
+    })(Settings = Global.Settings || (Global.Settings = {}));
+})(Global = exports.Global || (exports.Global = {}));

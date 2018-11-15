@@ -7,7 +7,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 class ProductModel {
-    constructor(id, platformName, title, publisher, developer, genre, coverImage, thumbImage, videoSource, source, releaseDate) {
+    constructor(id = null, platformName = null, title = null, publisher = null, developer = null, genre = null, coverImage = null, thumbImage = null, videoSource = null, source = null, releaseDate = null) {
         this.id = id;
         this.platformName = platformName;
         this.title = title;

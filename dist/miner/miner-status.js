@@ -14,9 +14,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const logger_1 = require("@cli/logger");
 const database_manager_1 = require("@db/database-manager");
 const dynsql_1 = require("@db/dynsql/dynsql");
-const logger_1 = require("../logger");
 class ProgressRec {
     constructor(totalCount, successCount, processedCount) {
         this.totalCount = totalCount;
@@ -61,6 +61,7 @@ class MinerStatus {
     }
     getProgressInfo() {
         let scope = this;
+        let result = new Array();
         /*
         function execSql(sql: string): Promise<IDbResult> {
             return new Promise((resolve, reject) => {
@@ -102,17 +103,6 @@ class MinerStatus {
                 let sessionInfo = yield getSessionDbRes();
                 for (let i = 0; i < sessionInfo.result.rowCount(); i++) {
                     let row = sessionInfo.result.dataRows[i];
-                    /*
-                    public sessionId: number,
-                    public minerName: string,
-                    public vendorId: number,
-                    public sessionKey: string,
-                    public totalCount: number,
-                    public successCount: number,
-                    public processedCount: number,
-                    public percentDone: number
-    
-                     */
                     let sessId = row.getValAsNum("id");
                     let name = row.getValAsStr("name");
                     let vendorId = row.getValAsNum("pv_id");
@@ -121,14 +111,14 @@ class MinerStatus {
                     let progRec = yield getSessionProg(sessId);
                     let percentDone = (progRec.processedCount / progRec.totalCount) * 100;
                     let statusRec = new MinerStatucRec(sessId, name, vendorId, sessKey, completed, progRec.totalCount, progRec.successCount, progRec.processedCount, percentDone);
-                    console.log("statusRec", statusRec);
+                    result.push(statusRec);
                 }
                 scope.db.close();
             });
         }
         return new Promise((resolve, reject) => {
             getInfo().then(() => {
-                resolve(null);
+                resolve(result);
             });
         });
     }

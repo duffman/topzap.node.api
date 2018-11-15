@@ -5,24 +5,22 @@
  * September 2018
  */
 
-import {DataFieldRow} from "@db/data-row";
-import {SQLTableDataRow} from "@db/sql-table-data-row";
-
 export class ProductModel {
 	// Extended properties
 	public platformIcon: string;
 	public platformImage: string;
 
 	constructor(
-		public id: string,
-		public platformName: string,
-		public title: string,
-		public publisher: string,
-		public developer: string,
-		public genre: string,
-		public coverImage: string,
-		public thumbImage: string,
-		public videoSource: string,
-		public source: string,
-		public releaseDate: string) {}
+		public id: string = null,
+		public platformName: string = null,
+		public title: string = null,
+		public publisher: string = null,
+		public developer: string = null,
+		public genre: string = null,
+		public coverImage: string = null,
+		public thumbImage: string = null,
+		public videoSource: string = null,
+		public source: string = null,
+		public releaseDate: string = null
+	) {}
 }

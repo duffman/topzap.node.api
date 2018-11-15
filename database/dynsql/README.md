@@ -1,2 +1,0 @@
-# dynsql
-SQL Query Builder

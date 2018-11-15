@@ -2,7 +2,6 @@
  * Copyright (c) Patrik Forsberg <patrik.forsberg@coldmind.com> - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * September 2018
  */
 
 
@@ -12,11 +11,10 @@ UPDATE `price_miner_queue` SET processed_when = NULL WHERE `session_id` = 30 AND
 
  */
 
-//import * as Promise from "bluebird";
 import { DbManager }              from "@db/database-manager";
-import { Logger }                 from "../logger";
+import { Logger }                 from "@cli/logger";
 import { IMinerWorkItem }         from "@miner/miner-session-model";
-import { MinerWorkItem }      from "@miner/miner-session-model";
+import { MinerWorkItem }          from "@miner/miner-session-model";
 import { MinerWorkItemUpdate }    from "@miner/miner-session-model";
 import { MinerSessionModel}       from "@miner/miner-session-model";
 import { IDbResult }              from "@db/db-result";
@@ -24,6 +22,7 @@ import { Guid }                   from "@utils/session-guid";
 import { DynSQL }                 from "@db/dynsql/dynsql";
 import { Base64 }                 from "@utils/base64";
 import { WorkerItemList }         from "@miner/miner-types";
+import SqlString from "@db/dynsql/sql-string";
 
 export class MinerDb {
 	db: DbManager;
@@ -171,6 +170,7 @@ export class MinerDb {
 	 * @returns {<boolean>}
 	 */
 	public updateWorkQueue(item: MinerWorkItemUpdate): Promise<IDbResult> {
+		let scope = this;
 		let dynQuery = new DynSQL();
 		dynQuery.update("price_miner_queue");
 		dynQuery.set("accepted", item.accepted);
@@ -181,7 +181,7 @@ export class MinerDb {
 		dynQuery.where("price_miner_queue.id", item.id)
 
 		let base64 = new Base64();
-		let message = DbManager.mysqlRealEscapeString(item.message); // base64.encode(item.message);
+		let message = SqlString.escapeString(item.message);
 
 		let sql = `UPDATE price_miner_queue SET `
 			+ `accepted=${item.accepted}, `;
@@ -193,7 +193,7 @@ export class MinerDb {
 			sql = sql + `price='${item.price}', `;
 
 		sql = sql + `processed_when=NOW(), `
-			+ `message='${message}' `
+			+ `message=${message} `
 			+ `WHERE id=${item.id} AND session_id=${item.sessionId}`;
 
 		Logger.logGreen("updateWorkQueue :: sql ::", sql);
@@ -203,7 +203,7 @@ export class MinerDb {
 				resolve(dbRes);
 			}).catch((error) => {
 				reject(error)
-			})
+			});
 		});
 	}
 

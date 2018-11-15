@@ -39,6 +39,16 @@ class MinerWorkItemUpdate {
     }
 }
 exports.MinerWorkItemUpdate = MinerWorkItemUpdate;
+class MinerErrorLogEntry {
+    constructor(queueId, vendorId, sessionId, message, errorMessage) {
+        this.queueId = queueId;
+        this.vendorId = vendorId;
+        this.sessionId = sessionId;
+        this.message = message;
+        this.errorMessage = errorMessage;
+    }
+}
+exports.MinerErrorLogEntry = MinerErrorLogEntry;
 class WorkItemUpdateRes {
     constructor(itemId, sessionId, success) {
         this.itemId = itemId;

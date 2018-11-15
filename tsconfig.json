@@ -9,11 +9,16 @@
   "outDir": "dist",
   "baseUrl": "./",
   "paths": {
-    "@core/*": ["./core/*"],
+    "@app/*": ["./app/*"],
+    "@api/*": ["./app/api/*"],
+    "@core/*": ["./app/core/*"],
+    "@cli/*": ["./app/cli/*"],
     "@miner/*": ["./miner/*"],
     "@models/*": ["./models/*"],
-    "@db/*": ["./database/*"],
-    "@utils/*": ["./utils/*"]
+    "@db/*": ["./lib/database/*"],
+    "@utils/*": ["./lib/utils/*"],
+    "@putte/*": ["./lib/putte-ts/*"],
+    "@zaplib/*": ["./lib/topzap-utils-lib/*"]
   }
 },
   "exclude": [

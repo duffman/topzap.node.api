@@ -18,9 +18,8 @@ const mysql = require("mysql");
 const data_sheet_1 = require("./data-sheet");
 const sql_table_data_1 = require("./sql-table-data");
 const db_result_1 = require("./db-result");
-const util_1 = require("util");
-const global_1 = require("../global");
-const logger_old_1 = require("../logger.old.");
+const db_logoger_1 = require("./db-logoger");
+const global_1 = require("../../global");
 const log = console.log;
 class DbManager {
     constructor(dbHost = global_1.Global.Settings.Database.dbHost, dbUser = global_1.Global.Settings.Database.dbUser, dbPass = global_1.Global.Settings.Database.dbPass, dbName = global_1.Global.Settings.Database.dbName) {
@@ -58,35 +57,12 @@ class DbManager {
         });
     }
     static escape(value) {
-        if (util_1.isNullOrUndefined(value))
+        if (value === null || value === undefined) {
             value = '';
+        }
         value = value.replace('"', '\"');
         value = value.replace("'", '\"');
         return value;
-    }
-    static mysqlRealEscapeString(str) {
-        return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) {
-            switch (char) {
-                case "\0":
-                    return "\\0";
-                case "\x08":
-                    return "\\b";
-                case "\x09":
-                    return "\\t";
-                case "\x1a":
-                    return "\\z";
-                case "\n":
-                    return "\\n";
-                case "\r":
-                    return "\\r";
-                case "\"":
-                case "'":
-                case "\\":
-                case "%":
-                    return "\\" + char; // prepends a backslash to backslash, percent,
-                // and double/single quotes
-            }
-        });
     }
     parseMysqlQueryResult(error, result, tableFields) {
         return new Promise((resolve, reject) => {
@@ -99,7 +75,7 @@ class DbManager {
                     //log("** Duplicate entry")
                 }
                 else {
-                    logger_old_1.Logger.logErrorMessage("dbQuery :: Error ::", error.errno);
+                    db_logoger_1.DbLogger.logErrorMessage("dbQuery :: Error ::", error.errno);
                 }
                 //reject(error);
                 resolve(queryResult);

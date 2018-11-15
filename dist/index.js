@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Patrik Forsberg ("CREATOR") CONFIDENTIAL
  * Unpublished Copyright (c) 2015-2018 Patrik Forsberg, All Rights Reserved.
@@ -18,8 +17,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
  *
  * Created by Patrik Forsberg - 2018
  */
-const miner_api_1 = require("@miner/miner-api");
-const logger_1 = require("./logger");
+Object.defineProperty(exports, "__esModule", { value: true });
+const miner_api_1 = require("@api/miner-api");
+const logger_1 = require("@cli/logger");
 let minerServer = new miner_api_1.MinerServerApi();
 minerServer.aquireSession(7, "Test").then((res) => {
     console.log("res", res);

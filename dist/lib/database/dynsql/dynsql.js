@@ -22,7 +22,7 @@ const util_1 = require("util");
 const util_2 = require("util");
 const util_3 = require("util");
 const records_1 = require("./records");
-const sql_string_1 = require("@db/dynsql/sql-string");
+const sql_string_1 = require("./sql-string");
 // Keywords
 const DB_INSERT = "INSERT";
 const DB_MYSQL_REPLACE = "REPLACE";

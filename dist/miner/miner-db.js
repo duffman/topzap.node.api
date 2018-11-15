@@ -3,7 +3,6 @@
  * Copyright (c) Patrik Forsberg <patrik.forsberg@coldmind.com> - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * September 2018
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 /*
@@ -11,14 +10,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 UPDATE `price_miner_queue` SET processed_when = NULL WHERE `session_id` = 30 AND processed_when >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
 
  */
-//import * as Promise from "bluebird";
 const database_manager_1 = require("@db/database-manager");
-const logger_1 = require("../logger");
+const logger_1 = require("@cli/logger");
 const miner_session_model_1 = require("@miner/miner-session-model");
 const miner_session_model_2 = require("@miner/miner-session-model");
 const session_guid_1 = require("@utils/session-guid");
 const dynsql_1 = require("@db/dynsql/dynsql");
 const base64_1 = require("@utils/base64");
+const sql_string_1 = require("@db/dynsql/sql-string");
 class MinerDb {
     constructor() {
         this.db = new database_manager_1.DbManager();
@@ -130,6 +129,7 @@ class MinerDb {
      * @returns {<boolean>}
      */
     updateWorkQueue(item) {
+        let scope = this;
         let dynQuery = new dynsql_1.DynSQL();
         dynQuery.update("price_miner_queue");
         dynQuery.set("accepted", item.accepted);
@@ -139,7 +139,7 @@ class MinerDb {
         dynQuery.set("message", item.message);
         dynQuery.where("price_miner_queue.id", item.id);
         let base64 = new base64_1.Base64();
-        let message = database_manager_1.DbManager.mysqlRealEscapeString(item.message); // base64.encode(item.message);
+        let message = sql_string_1.default.escapeString(item.message);
         let sql = `UPDATE price_miner_queue SET `
             + `accepted=${item.accepted}, `;
         sql = sql + `title='${item.title}', `;
@@ -147,7 +147,7 @@ class MinerDb {
         if (strPrice.length > 0)
             sql = sql + `price='${item.price}', `;
         sql = sql + `processed_when=NOW(), `
-            + `message='${message}' `
+            + `message=${message} `
             + `WHERE id=${item.id} AND session_id=${item.sessionId}`;
         logger_1.Logger.logGreen("updateWorkQueue :: sql ::", sql);
         return new Promise((resolve, reject) => {

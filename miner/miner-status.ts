@@ -5,10 +5,10 @@
  * September 2018
  */
 
+import { Logger }                 from "@cli/logger";
 import { DbManager }              from "@db/database-manager";
-import {DynSQL} from "@db/dynsql/dynsql";
-import {Logger} from "../logger";
-import {IDbResult} from "@db/db-result";
+import { DynSQL }                 from "@db/dynsql/dynsql";
+import { IDbResult }              from "@db/db-result";
 
 export class ProgressRec {
 	constructor(public totalCount: number,
@@ -61,8 +61,9 @@ export class MinerStatus {
 		});
 	}
 
-	public getProgressInfo(): Promise<IDbResult> {
+	public getProgressInfo(): Promise<Array<MinerStatucRec>> {
 		let scope = this;
+		let result = new Array<MinerStatucRec>();
 
 		/*
 		function execSql(sql: string): Promise<IDbResult> {
@@ -117,18 +118,6 @@ export class MinerStatus {
 			for (let i = 0; i < sessionInfo.result.rowCount(); i++) {
 				let row = sessionInfo.result.dataRows[i];
 
-				/*
-				public sessionId: number,
-				public minerName: string,
-				public vendorId: number,
-				public sessionKey: string,
-				public totalCount: number,
-				public successCount: number,
-				public processedCount: number,
-				public percentDone: number
-
-				 */
-
 				let sessId = row.getValAsNum("id");
 				let name = row.getValAsStr("name");
 				let vendorId = row.getValAsNum("pv_id");
@@ -151,7 +140,7 @@ export class MinerStatus {
 					percentDone
 				);
 
-				console.log("statusRec", statusRec);
+				result.push(statusRec);
 			}
 
 			scope.db.close();
@@ -159,9 +148,8 @@ export class MinerStatus {
 
 		return new Promise((resolve, reject) => {
 			getInfo().then(() => {
-				resolve(null);
+				resolve(result);
 			})
 		});
 	}
-
 }
