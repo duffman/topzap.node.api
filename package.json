@@ -3,7 +3,7 @@
   "version": "0.7.0",
   "description": "Lightweight TopZap API Server",
   "scripts": {
-    "start": "node ./dist/core/app.js"
+    "start": "node ./dist/app/app.js"
   },
   "main": "index.js",
   "author": "Patrik Forsberg <patrik.forsberg@coldmind.com>",

@@ -19,6 +19,11 @@
 
 export module Global {
 	export let DebugMode = false;
+
+	export module PriceServiceApi {
+		export const Uri = "http://localhost:65";
+	}
+
 	export module Settings {
 		export module Database {
 			export const dbName = "topzap-prod";

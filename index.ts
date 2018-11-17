@@ -17,37 +17,42 @@
  * Created by Patrik Forsberg - 2018
  */
 
-import { MinerWorkItemUpdate }    from "@miner/miner-session-model";
+import {MinerSessionModel, MinerWorkItemUpdate} from "@miner/miner-session-model";
 import { MinerServerApi }         from "@api/miner-api";
 import { Logger }                 from "@cli/logger";
 
-let minerServer = new MinerServerApi();
+export  class Main {
+	minerServer = new MinerServerApi();
 
-minerServer.aquireSession(7, "Test").then((res) => {
+	public init(): Promise<MinerSessionModel> {
+		return new Promise((resolve, reject) => {
+			this.minerServer.aquireSession(7, "Test").then((res) => {
 
-	console.log("res", res);
+			});
+		}).catch((err) => {
+			Logger.logError("Error getting session ::", err);
+		});
+  	}
+}
 
-	/*
-	let item = new MinerWorkItemUpdate(
-		4,
-		res.id,
-		true,
-		56.12,
-		"form.message"
-	);
+/*
+let item = new MinerWorkItemUpdate(
+	4,
+	res.id,
+	true,
+	56.12,
+	"form.message"
+);
 
-	minerServer.updateWorkItem(item).then((res) => {
-		console.log("updateWorkItem ::", res);
-	});
-	*/
-
-	/*
-	minerServer.getWorkQueue(res.id, 10).then((queue) => {
-		console.log("QUEUE", queue);
-	});
-	*/
-
-	Logger.logGreen("Session :: success :: >>");
-}).catch((err) => {
-	Logger.logError("Error getting session ::", err);
+minerServer.updateWorkItem(item).then((res) => {
+	console.log("updateWorkItem ::", res);
 });
+*/
+
+/*
+minerServer.getWorkQueue(res.id, 10).then((queue) => {
+	console.log("QUEUE", queue);
+});
+*/
+
+//Logger.logGreen("Session :: success :: >>");
