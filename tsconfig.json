@@ -10,12 +10,15 @@
   "baseUrl": "./",
   "paths": {
     "@app/*": ["./app/*"],
+    "@cms/*": ["./app/admini-cms/*"],
     "@api/*": ["./app/api/*"],
     "@core/*": ["./app/core/*"],
     "@cli/*": ["./app/cli/*"],
+    "@db/*": ["./database/*"],
     "@miner/*": ["./miner/*"],
     "@models/*": ["./models/*"],
-    "@db/*": ["./lib/database/*"],
+    "@putteDb/*": ["./lib/putte-db/*"],
+    "@mongo/*": ["./database/mongodb/*"],
     "@utils/*": ["./lib/utils/*"],
     "@putte/*": ["./lib/putte-ts/*"],
     "@zaplib/*": ["./lib/topzap-utils-lib/*"]

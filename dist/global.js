@@ -1,1 +1,11 @@
-'use strict';Object.defineProperty(exports,'__esModule',{value:true});var Global;(function(Global){Global.DebugMode=false;let PriceServiceApi;(function(PriceServiceApi){PriceServiceApi.Uri='http://localhost:65';}(PriceServiceApi=Global.PriceServiceApi||(Global.PriceServiceApi={})));let Settings;(function(Settings){let Database;(function(Database){Database.dbName='topzap-prod';Database.dbHost='localhost';Database.dbUser='duffman';Database.dbPass='bjoe7151212';}(Database=Settings.Database||(Settings.Database={})));}(Settings=Global.Settings||(Global.Settings={})));}(Global=exports.Global||(exports.Global={})));
+"use strict";
+/**
+ * Copyright (C) Patrik Forsberg <patrik.forsberg@coldmind.com> - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+var Global;
+(function (Global) {
+    Global.DebugMode = false;
+})(Global = exports.Global || (exports.Global = {}));

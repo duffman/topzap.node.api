@@ -6,9 +6,9 @@
  */
 
 import { Logger }                 from "@cli/logger";
-import { DbManager }              from "@db/database-manager";
-import { DynSQL }                 from "@db/dynsql/dynsql";
-import { IDbResult }              from "@db/db-result";
+import { DbManager }              from "@putteDb/database-manager";
+import { DynSQL }                 from "@putteDb/dynsql/dynsql";
+import { IDbResult }              from "@putteDb/db-result";
 
 export class ProgressRec {
 	constructor(public totalCount: number,
@@ -68,7 +68,7 @@ export class MinerStatus {
 		/*
 		function execSql(sql: string): Promise<IDbResult> {
 			return new Promise((resolve, reject) => {
-				return this.db.dbQuery(sql).then((dbRes) => {
+				return this.database.dbQuery(sql).then((dbRes) => {
 					resolve(dbRes);
 				}).catch((error) => {
 					Logger.logError("getMinerSession :: error ::", error);

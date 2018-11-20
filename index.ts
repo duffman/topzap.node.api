@@ -24,6 +24,7 @@ import { Logger }                 from "@cli/logger";
 export  class Main {
 	minerServer = new MinerServerApi();
 
+	/*
 	public init(): Promise<MinerSessionModel> {
 		return new Promise((resolve, reject) => {
 			this.minerServer.aquireSession(7, "Test").then((res) => {
@@ -33,6 +34,7 @@ export  class Main {
 			Logger.logError("Error getting session ::", err);
 		});
   	}
+  	*/
 }
 
 /*

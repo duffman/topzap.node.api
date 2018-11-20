@@ -11,18 +11,18 @@ UPDATE `price_miner_queue` SET processed_when = NULL WHERE `session_id` = 30 AND
 
  */
 
-import { DbManager }              from "@db/database-manager";
+import { DbManager }              from "@putteDb/database-manager";
+import { IDbResult }              from "@putteDb/db-result";
+import { DynSQL }                 from "@putteDb/dynsql/dynsql";
+import SqlString                  from "@putteDb/dynsql/sql-string";
 import { Logger }                 from "@cli/logger";
 import { IMinerWorkItem }         from "@miner/miner-session-model";
 import { MinerWorkItem }          from "@miner/miner-session-model";
 import { MinerWorkItemUpdate }    from "@miner/miner-session-model";
 import { MinerSessionModel}       from "@miner/miner-session-model";
-import { IDbResult }              from "@db/db-result";
 import { Guid }                   from "@utils/session-guid";
-import { DynSQL }                 from "@db/dynsql/dynsql";
 import { Base64 }                 from "@utils/base64";
 import { WorkerItemList }         from "@miner/miner-types";
-import SqlString from "@db/dynsql/sql-string";
 
 export class MinerDb {
 	db: DbManager;

@@ -2,26 +2,23 @@
  * Copyright (c) Patrik Forsberg <patrik.forsberg@coldmind.com> - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * September 2018
  */
 
-import { Express }                from "express";
+import { Express, Router }        from "express";
 import { Request, Response }      from 'express';
 import { MinerDb}                 from "@miner/miner-db";
-import { IDbResult }              from "@db/db-result";
-import { ApiController }          from "@api/api-controller";
+import { IDbResult }              from "@putteDb/db-result";
+import { IApiController }         from "@api/api-controller";
 
-export class ProductApi implements ApiController{
-
+export class ProductApi implements IApiController{
 	constructor() {}
 
-	public init(expressApp: Express) {
+	private setRouter(routes: Router) {
 		let scope = this;
-
 		//
 		// Product Bid
 		//
-		expressApp.get("/bid/:barcode", (req, res) => {
+		routes.get("/bid/:barcode", (req, res) => {
 			let barcode = req.params.barcode;
 
 		});
@@ -29,7 +26,7 @@ export class ProductApi implements ApiController{
 		//
 		// Product Bid
 		//
-		expressApp.post("/calcbasket/:barcode", (req, res) => {
+		routes.post("/calcbasket/:barcode", (req, res) => {
 			let fruits = req.body.items.split(",");
 			console.log(fruits); // This is an array
 		});

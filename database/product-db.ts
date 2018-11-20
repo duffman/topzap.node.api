@@ -5,15 +5,15 @@
  */
 
 import * as Promise               from "bluebird";
+import { DbManager }              from "@putteDb/database-manager";
+import { SQLTableDataRow }        from "@putteDb/sql-table-data-row";
 import { Logger }                 from "@cli/logger";
-import { DbManager }              from "@db/database-manager";
 import { ProductModel }           from "@models/product-model";
 import { VendorModel }            from "@models/vendor-model";
 import { ProductBidModel }        from "@models/product-bid-model";
 import { SearchResult }           from "@models/search-result";
 import { PlatformTypeParser }     from "@utils/platform-type-parser"
-import { SQLTableDataRow }        from "@db/sql-table-data-row";
-import { PStrUtils }              from "@putte/putte-string-utils";
+import { PStrUtils }              from "@putte/pstr-utils";
 
 export class ProductDb {
 	db: DbManager;

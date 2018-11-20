@@ -1,3 +1,4 @@
+"use strict";
 /**
  * Patrik Forsberg ("CREATOR") CONFIDENTIAL
  * Unpublished Copyright (c) 2015-2018 Patrik Forsberg, All Rights Reserved.
@@ -13,19 +14,16 @@
  * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT  THE EXPRESS WRITTEN CONSENT OF CREATOR IS STRICTLY PROHIBITED, AND IN VIOLATION OF APPLICABLE
  * LAWS AND INTERNATIONAL TREATIES.  THE RECEIPT OR POSSESSION OF  THIS SOURCE CODE AND/OR RELATED INFORMATION DOES NOT CONVEY OR IMPLY ANY RIGHTS
  * TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS, OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
- *
- * Created by Patrik Forsberg - 2018
  */
-
-import { Global } from "../global";
-
-export let DbEngine = require('knex')({
-	client: 'mysql',
-	debug: false,
-	connection: {
-		host : Global.Settings.Database.dbHost,
-		user : Global.Settings.Database.dbUser,
-		password : Global.Settings.Database.dbPass,
-		database : Global.Settings.Database.dbName
-	}
+Object.defineProperty(exports, "__esModule", { value: true });
+const settings_1 = require("@app/settings");
+exports.DbEngine = require('knex')({
+    client: 'mysql',
+    debug: false,
+    connection: {
+        host: settings_1.Settings.Database.dbHost,
+        user: settings_1.Settings.Database.dbUser,
+        password: settings_1.Settings.Database.dbPass,
+        database: settings_1.Settings.Database.dbName
+    }
 });

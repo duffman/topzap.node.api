@@ -4,8 +4,9 @@
  * Proprietary and confidential
  * September 2018
  */
-import {DataFieldRow} from "@db/data-row";
-import {SQLTableDataRow} from "@db/sql-table-data-row";
+
+import { DataFieldRow }           from "@putteDb/data-row";
+import { SQLTableDataRow }        from "@putteDb/sql-table-data-row";
 
 export class VendorModel {
 	constructor(

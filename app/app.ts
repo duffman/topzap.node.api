@@ -4,35 +4,45 @@
  * Proprietary and confidential
  */
 
-import {MinerStatus} from "@miner/miner-status";
+import { MinerStatus }            from "@miner/miner-status";
 
 //const express = require("express");
 //let bodyParser = require("body-parser");
 
 import * as express               from "express";
+import { Router }                 from "express";
 import * as bodyParser            from "body-parser";
 import * as cookieParser          from "cookie-parser";
-import { DbManager }              from "@db/database-manager";
+import { DbManager }              from "@putteDb/database-manager";
 import { SearchResult }           from "@models/search-result";
 import { Logger }                 from "@cli/logger";
-import { ProductDb }              from "../db/product-db";
 import { MinerServerApi }         from "@api/miner-api";
-import {BarcodeParser} from "@zaplib/barcode-parser";
+import {ProductDb} from "@db/product-db";
+import {IApiController} from "@api/api-controller";
 
 
 export class App {
 	port = 8080;
-	expressApp = express();
+	apiControllers: IApiController[];
+	webServer: express.Application;
+	webRoutes: Router = Router();
+
 	db: DbManager;
 
 	productDb: ProductDb;
 	minerServ: MinerServerApi;
 
 	constructor(public minerApi: boolean = false) {
+		this.apiControllers = new Array<IApiController>();
+		this.webServer = express();
 		this.db = new DbManager();
 		this.productDb = new ProductDb();
 		this.minerServ = new MinerServerApi();
 		this.init();
+	}
+
+	private configureWebServer(): void {
+		let app = this.webServer;
 	}
 
 	public test(barcode: string): Promise<SearchResult> {
@@ -45,11 +55,15 @@ export class App {
 		});
 	}
 
-	/**
-	 * Initialize The Express Web Server
-	 */
-	private init(): void {
-		let app = this.expressApp;
+	private initControllers() {
+		const routes = this.webRoutes;
+		this.apiControllers.push(
+			new minerApi().in
+		)
+	}
+
+	private configureWebServer(): void {
+		let app = this.webServer;
 
 		// set the view engine to ejs
 		app.set('view engine', 'ejs');
@@ -63,7 +77,17 @@ export class App {
 			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 			next();
 		});
+	}
 
+	/**
+	 * Initialize The Express Web Server
+	 */
+	private init(): void {
+		let app = this.webServer;
+
+		this.configureWebServer();
+
+		this.initControllers();
 
 		app.get('/minerstats', function(req, res) {
 			let stat = new MinerStatus();
@@ -81,40 +105,6 @@ export class App {
 		app.get('/res/:filename', (req, res) => {
 			let filename = req.params.code;
 			console.log("Get file", filename);
-		});
-
-		//
-		// Get Product by Barcode
-		//
-		let extendedProdData = true;
-
-		app.post('/barcode', (req, res) => {
-			// /:code
-			let data = req.body;
-
-
-			let reqCode = data.ean; //  req.params.code;
-			let fullResult = !data.cache;
-			let debug = data.debug;
-
-			Logger.logGreen("Given Barcode:", data);
-
-			reqCode = BarcodeParser.prepEan13Code(reqCode, true);
-
-			Logger.logGreen("Prepared Barcode:", reqCode);
-
-			this.productDb.getProductOffers(reqCode, fullResult, extendedProdData, debug).then((result) => {
-				if (result.product != null) {
-					Logger.logGreen("Product found:", result.product.title);
-					res.json(result);
-				} else {
-					res.json(new Error("Not found"));
-				}
-
-
-			}).catch((error) => {
-				Logger.logError("Error in test", error);
-			});
 		});
 
 		//

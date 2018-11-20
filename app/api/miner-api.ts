@@ -4,24 +4,151 @@
  * Proprietary and confidential
  */
 
-import { ServerApi }              from "@api/server-api";
-import { Express }                from "express";
+import { Express, Router }        from "express";
 import { Request, Response }      from 'express';
+import { ApiControllerUtils }     from "@api/server-api";
 import { MinerDb}                 from "@miner/miner-db";
 import { IMinerWorkItem }         from "@miner/miner-session-model";
 import { MinerErrorLogEntry}      from "@miner/miner-session-model";
 import { WorkItemUpdateRes }      from "@miner/miner-session-model";
 import { MinerWorkItemUpdate}     from "@miner/miner-session-model";
 import { MinerSessionModel }      from "@miner/miner-session-model";
-import { IDbResult }              from "@db/db-result";
+import { IDbResult }              from "@putteDb/db-result";
 import { Logger }                 from "@cli/logger";
+import { IApiController }         from "@api/api-controller";
 
-export class MinerServerApi extends ServerApi {
+export class MinerServerApi implements IApiController {
 	minerDb: MinerDb;
 
 	constructor() {
-		super();
 		this.minerDb = new MinerDb();
+	}
+
+	private setRouter(routes: Router) {
+		let scope = this;
+
+		//
+		// Get Miner Session
+		//
+		routes.get('/miner/session/:id/:name?', (req, res) => {
+			let id = Number(req.params.id);
+			let name = req.params.name != null ? req.params.name: "NAME_UNSET";
+
+			Logger.logCyan("Miner Session ::", id);
+			Logger.logCyan("Miner Name ::", name);
+
+			scope.aquireSession(id, name).then((session) => {
+				res.json(session);
+
+			}).catch((err: Error) => {
+				res.writeHead(501, {'Content-Type': 'text/plain'});
+				res.end(err.message);
+			});
+		});
+
+		//
+		// Set Session Completed
+		//
+		routes.post("/miner/session/done", (req, resp) => {
+			Logger.logGreen("Miner Update", req.body);
+
+			let form = req.body;
+			Logger.logCyan("form.sessionId", form.sessionId);
+			Logger.logCyan("form.vendorId", form.vendorId);
+
+			scope.setSessionDone(form.sessionId, form.vendorId).then((res) => {
+				resp.json(res);
+
+			}).catch((err: Error) => {
+				ApiControllerUtils.internalError(resp);
+			});
+		});
+
+		//
+		// Set Session Completed
+		//
+		routes.post("/miner/error/log", (req, resp) => {
+			Logger.logRed("Miner Update", req.body);
+
+			let form = req.body;
+//			Logger.logCyan("form.queueId", form.);
+
+			let item = new MinerErrorLogEntry(
+				form.queueId,
+				form.vendorId,
+				form.sessionId,
+				form.message,
+				form.errorMessage
+			);
+
+			scope.setSessionDone(form.sessionId, form.vendorId).then((res) => {
+				resp.json(res);
+
+			}).catch((err: Error) => {
+				ApiControllerUtils.internalError(resp);
+			});
+		});
+
+		//
+		// Get Queued Work Items
+		//
+		routes.get("/miner/queue/:id/:size?", (req, resp) => {
+			let sessionId = Number(req.params.id);
+			let size = req.params.size != null ? Number(req.params.size): 10;
+
+			scope.getWorkQueue(sessionId, size).then((queueItems) => {
+				resp.json(queueItems);
+
+			}).catch((err: Error) => {
+				resp.writeHead(501, {'Content-Type': 'text/plain'});
+				resp.end(err.message);
+			});
+		});
+
+		//
+		// Updated Queued Work Item
+		//
+		routes.post("/miner/update", (req, res) => {
+			Logger.logGreen("Miner Update", req.body);
+
+			let form = req.body;
+			Logger.logCyan("form.itemId", form.itemId);
+			Logger.logCyan("form.sessionId", form.sessionId);
+			Logger.logCyan("form.accepted", form.accepted);
+			Logger.logCyan("form.title", form.title);
+			Logger.logCyan("form.price", form.price);
+			Logger.logCyan("form.message", form.message);
+
+			let item = new MinerWorkItemUpdate(
+				form.id,
+				form.sessionId,
+				form.accepted,
+				form.title,
+				form.price,
+				form.message
+			);
+
+			Logger.logGreen("item ::", item);
+			Logger.spit();
+
+			this.minerDb.updateWorkQueue(item).then((result) => {
+				Logger.logCyan("updateWorkQueue ::", result.success);
+
+				let success = result.success && result.affectedRows > 0;
+
+				let updateRes = new WorkItemUpdateRes(
+					form.id,
+					form.sessionId,
+					success
+				);
+
+				res.json(updateRes);
+
+			}).catch((err) => {
+				Logger.logError("Error updating work item ::", err);
+				ApiControllerUtils.internalError(res, err.message);
+			});
+		});
 	}
 
 	/**
@@ -169,133 +296,6 @@ export class MinerServerApi extends ServerApi {
 				resolve(sessionData);
 			}).catch((err) => {
 				Logger.logError("aquireSession :: error ::", err);
-			});
-		});
-	}
-
-	public init(expressApp: Express) {
-		let scope = this;
-
-		//
-		// Get Miner Session
-		//
-		expressApp.get('/miner/session/:id/:name?', (req, res) => {
-			let id = Number(req.params.id);
-			let name = req.params.name != null ? req.params.name: "NAME_UNSET";
-
-			Logger.logCyan("Miner Session ::", id);
-			Logger.logCyan("Miner Name ::", name);
-
-			scope.aquireSession(id, name).then((session) => {
-				res.json(session);
-
-			}).catch((err: Error) => {
-				res.writeHead(501, {'Content-Type': 'text/plain'});
-				res.end(err.message);
-			});
-		});
-
-		//
-		// Set Session Completed
-		//
-		expressApp.post("/miner/session/done", (req, resp) => {
-			Logger.logGreen("Miner Update", req.body);
-
-			let form = req.body;
-			Logger.logCyan("form.sessionId", form.sessionId);
-			Logger.logCyan("form.vendorId", form.vendorId);
-
-			scope.setSessionDone(form.sessionId, form.vendorId).then((res) => {
-				resp.json(res);
-
-			}).catch((err: Error) => {
-				ServerApi.internalError(resp);
-			});
-		});
-
-		//
-		// Set Session Completed
-		//
-		expressApp.post("/miner/error/log", (req, resp) => {
-			Logger.logRed("Miner Update", req.body);
-
-			let form = req.body;
-//			Logger.logCyan("form.queueId", form.);
-
-			let item = new MinerErrorLogEntry(
-				form.queueId,
-				form.vendorId,
-				form.sessionId,
-				form.message,
-				form.errorMessage
-			);
-
-			scope.setSessionDone(form.sessionId, form.vendorId).then((res) => {
-				resp.json(res);
-
-			}).catch((err: Error) => {
-				ServerApi.internalError(resp);
-			});
-		});
-
-		//
-		// Get Queued Work Items
-		//
-		expressApp.get("/miner/queue/:id/:size?", (req, resp) => {
-			let sessionId = Number(req.params.id);
-			let size = req.params.size != null ? Number(req.params.size): 10;
-
-			scope.getWorkQueue(sessionId, size).then((queueItems) => {
-				resp.json(queueItems);
-
-			}).catch((err: Error) => {
-				resp.writeHead(501, {'Content-Type': 'text/plain'});
-				resp.end(err.message);
-			});
-		});
-
-		//
-		// Updated Queued Work Item
-		//
-		expressApp.post("/miner/update", (req, res) => {
-			Logger.logGreen("Miner Update", req.body);
-
-			let form = req.body;
-			Logger.logCyan("form.itemId", form.itemId);
-			Logger.logCyan("form.sessionId", form.sessionId);
-			Logger.logCyan("form.accepted", form.accepted);
-			Logger.logCyan("form.title", form.title);
-			Logger.logCyan("form.price", form.price);
-			Logger.logCyan("form.message", form.message);
-
-			let item = new MinerWorkItemUpdate(
-				form.id,
-				form.sessionId,
-				form.accepted,
-				form.title,
-				form.price,
-				form.message
-			);
-
-			Logger.logGreen("item ::", item);
-			Logger.spit();
-
-			this.minerDb.updateWorkQueue(item).then((result) => {
-				Logger.logCyan("updateWorkQueue ::", result.success);
-
-				let success = result.success && result.affectedRows > 0;
-
-				let updateRes = new WorkItemUpdateRes(
-					form.id,
-					form.sessionId,
-					success
-				);
-
-				res.json(updateRes);
-
-			}).catch((err) => {
-				Logger.logError("Error updating work item ::", err);
-				ServerApi.internalError(res, err.message);
 			});
 		});
 	}
