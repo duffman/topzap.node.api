@@ -65,7 +65,7 @@ export class SearchApiController implements IApiController {
 			});
 		});
 
-		routes.post("/code", (req, resp) => {
+		this.webRoutes.post("/code", (req, resp) => {
 			console.log("I AM HERE!!!!");
 			let data = req.body;
 

@@ -67,11 +67,23 @@ export class ZapApp implements IZappyApp {
 		controllers.push(new ServiceApiController());
 		controllers.push(new MinerApiController());
 
+		routes.get('/snora', function(req, resp) {
+			resp.json({snor:"ja ett snor-luder"});
+			console.log("SNOR!!!!!");
+		});
+
+		this.webRoutes.get('/robo', function(req, resp) {
+			resp.json({snor:"ja ett snor-luder"});
+			console.log("SNOR!!!!!");
+		});
+
 		//
 		// Pass the Route object to each controller to assign routes
 		//
+		console.log("ADD CONTROLLERS");
 		for (let index in controllers) {
 			let controller = controllers[index];
+			console.log("ADDING ::", controller);
 			controller.initRoutes(routes);
 		}
 	}
@@ -101,6 +113,16 @@ export class ZapApp implements IZappyApp {
 
 		this.configureWebServer();
 		this.initControllers();
+
+		app.get('/hora', function(req, resp) {
+			resp.json({hora:"ja ett luder"});
+			console.log("HORA!!!!!");
+		});
+
+		app.post('/hora2', function(req, resp) {
+			resp.json({hora:"som fan"});
+			console.log("HORA!!!!!");
+		});
 
 		app.get('/minerstats', function(req, res) {
 			let stat = new MinerStatus();
