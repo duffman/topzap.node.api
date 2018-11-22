@@ -17,12 +17,22 @@
  * Created by Patrik Forsberg - 2018
  */
 
-import {MinerSessionModel, MinerWorkItemUpdate} from "@miner/miner-session-model";
-import { MinerApiController }         from "@api/miner-api-controller";
-import { Logger }                 from "@cli/logger";
+import { IZappyApp }              from "@app/zappy.app";
+import {Logger} from "@cli/cli.logger";
+import {ZapApp} from "@app/app";
 
-export  class Main {
-	minerServer = new MinerApiController();
+export class Main {
+	zappy: IZappyApp;
+
+	public run(): boolean {
+		try {
+			this.zappy = new ZapApp()
+			return true;
+		} catch (err) {
+			Logger.logError("Run Failed ::", err);
+			return false;
+		}
+	}
 
 	/*
 	public init(): Promise<MinerSessionModel> {
@@ -36,6 +46,10 @@ export  class Main {
   	}
   	*/
 }
+
+let main = new Main();
+main.run();
+
 
 /*
 let item = new MinerWorkItemUpdate(

@@ -10,7 +10,7 @@
 import { AdminiDb }               from "@cms/db/admini-db";
 import { AdminiContentDb }        from "@cms/db/admini-content-db";
 import { ICMSContent }            from "@cms/cms-content";
-import {Logger} from "@cli/logger";
+import {Logger} from "@cli/cli.logger";
 
 export interface IContentFactory {}
 

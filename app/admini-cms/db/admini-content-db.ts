@@ -7,7 +7,7 @@
 import { DbManager }              from "@putteDb/database-manager";
 import { DynSQL }                 from "@putteDb/dynsql/dynsql";
 import { ICMSContent }            from "@cms/cms-content";
-import { Logger }                 from "@cli/logger";
+import { Logger }                 from "@cli/cli.logger";
 import { IDbResult}               from "@putteDb/db-result";
 
 export class AdminiContentDb {

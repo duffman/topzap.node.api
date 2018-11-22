@@ -7,7 +7,7 @@
 import * as Promise               from "bluebird";
 import { DbManager }              from "@putteDb/database-manager";
 import { SQLTableDataRow }        from "@putteDb/sql-table-data-row";
-import { Logger }                 from "@cli/logger";
+import { Logger }                 from "@cli/cli.logger";
 import { ProductModel }           from "@models/product-model";
 import { VendorModel }            from "@models/vendor-model";
 import { ProductBidModel }        from "@models/product-bid-model";

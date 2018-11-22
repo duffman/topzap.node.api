@@ -5,46 +5,45 @@
  */
 
 import { MinerStatus }            from "@miner/miner-status";
-
-//const express = require("express");
-//let bodyParser = require("body-parser");
-
 import * as express               from "express";
 import { Router }                 from "express";
 import * as bodyParser            from "body-parser";
 import * as cookieParser          from "cookie-parser";
 import { DbManager }              from "@putteDb/database-manager";
 import { SearchResult }           from "@models/search-result";
-import { Logger }                 from "@cli/logger";
-import { MinerApiController }         from "@api/miner-api-controller";
+import { Logger }                 from "@cli/cli.logger";
+import { MinerApiController }     from "@api/miner-api-controller";
 import { ProductDb }              from "@db/product-db";
 import { IApiController }         from "@api/api-controller";
-import {ServiceApiController} from "@api/service-api-controller";
+import { ServiceApiController }   from "@api/service-api-controller";
+import { CliCommander }           from "@cli/cli.commander";
+import { IZappyApp }              from "@app/zappy.app";
+import {SearchApiController} from "@api/search-api-controller";
 
-export class App {
+export class ZapApp implements IZappyApp {
 	port = 8080;
 	apiControllers: IApiController[];
 	webServer: express.Application;
 	webRoutes: Router = Router();
 
 	db: DbManager;
-
 	productDb: ProductDb;
-//	minerServ: MinerApiController;
+
+	getVersion(): string {
+		return "ZapApp-Node-API/1.6.5";
+	}
 
 	constructor(public includeMinerApi: boolean = false) {
 		this.apiControllers = new Array<IApiController>();
 		this.webServer = express();
 		this.db = new DbManager();
 		this.productDb = new ProductDb();
-//		this.minerServ = new MinerApiController();
 		this.init();
 	}
 
 	//
 	// This is really bad design, but until we have DI, this OK for now,,,
 	//
-
 
 	public test(barcode: string): Promise<SearchResult> {
 		return new Promise<SearchResult>((resolve, reject) => {
@@ -64,15 +63,17 @@ export class App {
 		const routes = this.webRoutes;
 		const controllers = this.apiControllers;
 
-		controllers.push(new MinerApiController());
+		controllers.push(new SearchApiController());
 		controllers.push(new ServiceApiController());
+		controllers.push(new MinerApiController());
 
-		console.log("CONTROLLERS");
-		for (let controller in controllers) {
-			console.log("CONTROLLER ::", controller);
+		//
+		// Pass the Route object to each controller to assign routes
+		//
+		for (let index in controllers) {
+			let controller = controllers[index];
+			controller.initRoutes(routes);
 		}
-		// Init Routes for all controllers
-	//.setRouter(this.webRoutes)
 	}
 
 	private configureWebServer(): void {
@@ -124,13 +125,7 @@ export class App {
 	}
 }
 
-if (CliCommander)
-
-let minerApi = true;
-let app = new App(minerApi);
-
-/*
-app.test("045496590451").then((result) => {
-	console.log(JSON.stringify(result));
-});
-*/
+if (CliCommander.debug()) {
+	let minerApi = true;
+	let app = new ZapApp(minerApi);
+}

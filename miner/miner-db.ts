@@ -15,7 +15,7 @@ import { DbManager }              from "@putteDb/database-manager";
 import { IDbResult }              from "@putteDb/db-result";
 import { DynSQL }                 from "@putteDb/dynsql/dynsql";
 import SqlString                  from "@putteDb/dynsql/sql-string";
-import { Logger }                 from "@cli/logger";
+import { Logger }                 from "@cli/cli.logger";
 import { IMinerWorkItem }         from "@miner/miner-session-model";
 import { MinerWorkItem }          from "@miner/miner-session-model";
 import { MinerWorkItemUpdate }    from "@miner/miner-session-model";

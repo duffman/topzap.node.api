@@ -6,7 +6,7 @@
 
 import { Express, Router }        from "express";
 import { Request, Response }      from 'express';
-import { ApiControllerUtils }     from "@api/controller-utils";
+import { ControllerUtils }     from "@api/controller.utils";
 import { MinerDb}                 from "@miner/miner-db";
 import { IMinerWorkItem }         from "@miner/miner-session-model";
 import { MinerErrorLogEntry}      from "@miner/miner-session-model";
@@ -14,7 +14,7 @@ import { WorkItemUpdateRes }      from "@miner/miner-session-model";
 import { MinerWorkItemUpdate}     from "@miner/miner-session-model";
 import { MinerSessionModel }      from "@miner/miner-session-model";
 import { IDbResult }              from "@putteDb/db-result";
-import { Logger }                 from "@cli/logger";
+import { Logger }                 from "@cli/cli.logger";
 import { IApiController }         from "@api/api-controller";
 
 export class MinerApiController implements IApiController {
@@ -24,7 +24,7 @@ export class MinerApiController implements IApiController {
 		this.minerDb = new MinerDb();
 	}
 
-	public setRouter(routes: Router) {
+	public initRoutes(routes: Router) {
 		let scope = this;
 
 		//
@@ -60,7 +60,7 @@ export class MinerApiController implements IApiController {
 				resp.json(res);
 
 			}).catch((err: Error) => {
-				ApiControllerUtils.internalError(resp);
+				ControllerUtils.internalError(resp);
 			});
 		});
 
@@ -85,7 +85,7 @@ export class MinerApiController implements IApiController {
 				resp.json(res);
 
 			}).catch((err: Error) => {
-				ApiControllerUtils.internalError(resp);
+				ControllerUtils.internalError(resp);
 			});
 		});
 
@@ -146,7 +146,7 @@ export class MinerApiController implements IApiController {
 
 			}).catch((err) => {
 				Logger.logError("Error updating work item ::", err);
-				ApiControllerUtils.internalError(res, err.message);
+				ControllerUtils.internalError(res, err.message);
 			});
 		});
 	}

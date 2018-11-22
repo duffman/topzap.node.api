@@ -6,7 +6,7 @@
 
 export module Settings {
 	export module PriceServiceApi {
-		export const Uri = "http://localhost:6562";
+		export const Endpoint = "http://localhost:6562";
 	}
 
 	export module MongoDb {

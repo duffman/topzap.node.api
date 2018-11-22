@@ -5,7 +5,7 @@
  * September 2018
  */
 
-import { Logger }                 from "@cli/logger";
+import { Logger }                 from "@cli/cli.logger";
 import { DbManager }              from "@putteDb/database-manager";
 import { DynSQL }                 from "@putteDb/dynsql/dynsql";
 import { IDbResult }              from "@putteDb/db-result";

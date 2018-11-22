@@ -10,7 +10,7 @@ import { IApiController }         from "@api/api-controller";
 export class ProductApi implements IApiController{
 	constructor() {}
 
-	public setRouter(routes: Router) {
+	public initRoutes(routes: Router) {
 		let scope = this;
 		//
 		// Product Bid

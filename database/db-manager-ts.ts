@@ -15,7 +15,7 @@
  * TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS, OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-import { Settings } from "@app/settings";
+import { Settings } from "@app/zappy.app.settings";
 
 export let DbEngine = require('knex')({
 	client: 'mysql',
