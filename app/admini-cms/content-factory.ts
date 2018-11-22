@@ -25,8 +25,10 @@ export class ContentFactory implements IContentFactory {
 
 	public getContent(contentId: number): Promise<ICMSContent> {
 		return new Promise((resolve, reject) => {
-			this.adminiContentDb.getContent(contentId).then((res) => {
-				console.log("GET CONTENT ::", res.)
+			this.adminiContentDb.getContentById(contentId).then((res) => {
+				console.log("GET CONTENT :: JSON DEBUG::", res.rawObj);
+
+				resolve(null);
 			});
 		});
 	}

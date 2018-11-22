@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});const miner_api_controller_1=require('./app/api/miner-api-controller');class Main{constructor(){this.minerServer=new miner_api_controller_1.MinerApiController();}}exports.Main=Main;

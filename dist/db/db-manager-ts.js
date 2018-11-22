@@ -1,1 +1,0 @@
-'use strict';Object.defineProperty(exports,'__esModule',{value:true});const global_1=require('../global');exports.DbEngine=require('knex')({client:'mysql',debug:false,connection:{host:global_1.Global.Settings.Database.dbHost,user:global_1.Global.Settings.Database.dbUser,password:global_1.Global.Settings.Database.dbPass,database:global_1.Global.Settings.Database.dbName}});

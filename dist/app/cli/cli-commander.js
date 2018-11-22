@@ -1,0 +1,1 @@
+const args=process.argv.slice(2);function getFirst(){return args.length>0?args[0]:null;}

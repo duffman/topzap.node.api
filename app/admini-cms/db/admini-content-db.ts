@@ -4,11 +4,11 @@
  * Proprietary and confidential
  */
 
-import { DbManager } from "@putteDb/database-manager";
-import {DynSQL} from "@putteDb/dynsql/dynsql";
-import {ICMSContent} from "@app/cms/cms-content";
-import {Logger} from "@cli/logger";
-import {IDbResult} from "@putteDb/db-result";
+import { DbManager }              from "@putteDb/database-manager";
+import { DynSQL }                 from "@putteDb/dynsql/dynsql";
+import { ICMSContent }            from "@cms/cms-content";
+import { Logger }                 from "@cli/logger";
+import { IDbResult}               from "@putteDb/db-result";
 
 export class AdminiContentDb {
 	db: DbManager;
@@ -21,12 +21,12 @@ export class AdminiContentDb {
 	private init() {
 	}
 
-	public getContentByName(contentId: number): Promise<IDbResult> {
+	public getContentByName(contentId: string): Promise<IDbResult> {
 		return new Promise((resolve, reject) => {
 		});
 	}
 
-	public getContent(contentId: number): Promise<IDbResult> {
+	public getContentById(contentId: number): Promise<IDbResult> {
 		let dynSql = new DynSQL();
 		dynSql.select("");
 

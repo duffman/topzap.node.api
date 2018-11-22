@@ -4,13 +4,11 @@
  * Proprietary and confidential
  */
 
-import { ICMSContent }            from "@app/cms/cms-content";
+import { ICMSContent }            from "@cms/cms-content";
 
 export class ContentData implements ICMSContent {
 	constructor(
 		public id: number,
 		public name: string
 	) {}
-
-	public
 }

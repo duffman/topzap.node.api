@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});class ProductApi{constructor(){}setRouter(routes){let scope=this;routes.get('/bid/:barcode',(req,res)=>{let barcode=req.params.barcode;});routes.post('/calcbasket/:barcode',(req,res)=>{let fruits=req.body.items.split(',');console.log(fruits);});}}exports.ProductApi=ProductApi;

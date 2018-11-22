@@ -16,10 +16,10 @@ import * as cookieParser          from "cookie-parser";
 import { DbManager }              from "@putteDb/database-manager";
 import { SearchResult }           from "@models/search-result";
 import { Logger }                 from "@cli/logger";
-import { MinerServerApi }         from "@api/miner-api";
-import {ProductDb} from "@db/product-db";
-import {IApiController} from "@api/api-controller";
-
+import { MinerApiController }         from "@api/miner-api-controller";
+import { ProductDb }              from "@db/product-db";
+import { IApiController }         from "@api/api-controller";
+import {ServiceApiController} from "@api/service-api-controller";
 
 export class App {
 	port = 8080;
@@ -30,20 +30,21 @@ export class App {
 	db: DbManager;
 
 	productDb: ProductDb;
-	minerServ: MinerServerApi;
+//	minerServ: MinerApiController;
 
-	constructor(public minerApi: boolean = false) {
+	constructor(public includeMinerApi: boolean = false) {
 		this.apiControllers = new Array<IApiController>();
 		this.webServer = express();
 		this.db = new DbManager();
 		this.productDb = new ProductDb();
-		this.minerServ = new MinerServerApi();
+//		this.minerServ = new MinerApiController();
 		this.init();
 	}
 
-	private configureWebServer(): void {
-		let app = this.webServer;
-	}
+	//
+	// This is really bad design, but until we have DI, this OK for now,,,
+	//
+
 
 	public test(barcode: string): Promise<SearchResult> {
 		return new Promise<SearchResult>((resolve, reject) => {
@@ -55,11 +56,23 @@ export class App {
 		});
 	}
 
+	/**
+	 * Create child controllers and let each controlller
+	 * add itself to the main Router
+	 */
 	private initControllers() {
 		const routes = this.webRoutes;
-		this.apiControllers.push(
-			new minerApi().in
-		)
+		const controllers = this.apiControllers;
+
+		controllers.push(new MinerApiController());
+		controllers.push(new ServiceApiController());
+
+		console.log("CONTROLLERS");
+		for (let controller in controllers) {
+			console.log("CONTROLLER ::", controller);
+		}
+		// Init Routes for all controllers
+	//.setRouter(this.webRoutes)
 	}
 
 	private configureWebServer(): void {
@@ -86,7 +99,6 @@ export class App {
 		let app = this.webServer;
 
 		this.configureWebServer();
-
 		this.initControllers();
 
 		app.get('/minerstats', function(req, res) {
@@ -107,17 +119,12 @@ export class App {
 			console.log("Get file", filename);
 		});
 
-		//
-		// Miner Api Endpoint
-		//
-		if (this.minerApi) {
-			this.minerServ.init(app);
-		}
-
 		app.listen(this.port);
 		console.log(`Listening on localhost: ${this.port}`);
 	}
 }
+
+if (CliCommander)
 
 let minerApi = true;
 let app = new App(minerApi);
