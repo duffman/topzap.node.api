@@ -7,3 +7,6 @@
 [submodule "app/cli"]
 	path = app/cli
 	url = https://github.com/duffman/zap.cli.commander.git
+[submodule "lib/zynaptic-web"]
+	path = lib/zynaptic-web
+	url = https://github.com/duffman/zynaptic-web.git

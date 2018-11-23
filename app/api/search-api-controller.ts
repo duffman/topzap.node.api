@@ -18,7 +18,6 @@ import { CliCommander }           from "@cli/cli.commander";
 
 export class SearchApiController implements IApiController {
 	debug: boolean;
-	webRoutes: Router;
 	searchEngine: PriceSearchService;
 	productDb: ProductDb;
 
@@ -27,10 +26,7 @@ export class SearchApiController implements IApiController {
 		this.searchEngine = new PriceSearchService();
 	}
 
-	public initRoutes(routes: Router) {
-		console.log("Init Search API Routes!!")
-
-		this.webRoutes = routes;
+	public initRoutes(routes: Router): void {
 		let scope = this;
 
 		//
@@ -38,10 +34,9 @@ export class SearchApiController implements IApiController {
 		//
 		let extendedProdData = true;
 
-		routes.post("/code2", (req, resp) => {
+		routes.post("/code2BLABLA", (req, resp) => {
 			// /:code
 			let data = req.body;
-
 
 			let reqCode = data.ean; //  req.params.code;
 			let fullResult = !data.cache;
@@ -65,47 +60,86 @@ export class SearchApiController implements IApiController {
 			});
 		});
 
-		this.webRoutes.post("/code", (req, resp) => {
-			console.log("I AM HERE!!!!");
-			let data = req.body;
-
-			let reqCode = data.code;
-			let fullResult = !data.cache;
-			let debug = data.debug;
-
-			Logger.logGreen("Given Barcode:", data);
-			reqCode = BarcodeParser.prepEan13Code(reqCode, true);
-			Logger.logGreen("Prepared Barcode:", reqCode);
+		//
+		// Get Zap Result by GET barcode
+		//
+		routes.get("/codes", (req: Request, resp: Response) => {
+			console.log("Fet fucking GET CODE");
+			let reqCode = req.params.code;
 
 			scope.callSearchService(reqCode).then((searchRes) => {
-				console.log("SEARCH RESULT ::", searchRes);
+				console.log("JOKER :: SEARCH RESULT ::", searchRes);
 			}).catch((err) => {
 				ControllerUtils.internalError(resp);
 				Logger.logError("SearchApiController :: error ::", err);
 			})
 		});
 
-		this.webRoutes.get('/code/:code', this.doDebugSearch.bind(this));
+		//
+		// Get Zap Result by POST barcode
+		//
+		routes.post("/code", (req: Request, resp: Response) => {
+			console.log("CODE FROM NR 1 ::", req.body.code);
+			Logger.spit();
+			Logger.spit();
+			console.log("REQUEST BODY ::", req.body);
+			Logger.spit();
+			Logger.spit();
+
+			let data = req.body;
+			let reqCode = data.code;
+
+			console.log("FUCK MY ASS ::: ", reqCode);
+
+			let fullResult = !data.cache;
+			let debug = data.debug;
+
+			console.log("Given Barcode:", data);
+			//reqCode = BarcodeParser.prepEan13Code(reqCode, true);
+			Logger.logGreen("Prepared Barcode:", reqCode);
+
+			scope.callSearchService(reqCode).then((searchRes) => {
+				console.log("RIDDLER :: SEARCH RESULT ::", searchRes);
+				resp.json(searchRes);
+
+			}).catch((err) => {
+				ControllerUtils.internalError(resp);
+				Logger.logError("SearchApiController :: error ::", err);
+			})
+		});
+
+		routes.get('/code/:code', this.doDebugSearch.bind(this));
 	}
 
 	public doDebugSearch(req: Request, resp: Response) {
+		console.log("SEARCH FUCKING DEBUG!!!");
 		let code = "819338020068";
 
-		this.callSearchService(code).then((searchRes) => {
-			console.log("SEARCH RESULT ::", searchRes);
-		}).catch((err) => {
-			ControllerUtils.internalError(resp);
-			Logger.logError("SearchApiController :: error ::", err);
-		})
+		return new Promise((resolve, reject) => {
+			this.callSearchService(code).then((searchRes) => {
+				console.log("BATMAN :: SEARCH RESULT ::", searchRes);
+				resolve(searchRes);
+			}).catch((err) => {
+				ControllerUtils.internalError(resp);
+				Logger.logError("SearchApiController :: error ::", err);
+			})
+		});
 	}
 
-	public callSearchService(code: string): Promise<SearchResult> {
+	//	public callSearchService(code: string): Promise<SearchResult> {
+
+	public callSearchService(code: string): Promise<string> {
+		Logger.logGreen("callSearchService");
+		let url = Settings.PriceServiceApi.Endpoint;
+
 		return new Promise((resolve, reject) => {
-			let url = Settings.PriceServiceApi.Endpoint;
-			this.searchEngine.doSearch(code).then((searchResult) => {
+			return this.searchEngine.doSearch(code).then((searchResult) => {
+				console.log("callSearchService :: doSearch ::", searchResult);
+				resolve(searchResult);
 
 			}).catch((err) => {
-
+				console.log("callSearchService :: error ::", err);
+				resolve(err);
 			})
 		});
 	}

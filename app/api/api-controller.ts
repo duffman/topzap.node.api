@@ -12,7 +12,7 @@ import { Router }                 from "express";
  * Core Controller
  */
 export interface IWebAppController {
-	initRoutes(routes: Router);
+	initRoutes(routes: Router): void;
 }
 
 /**

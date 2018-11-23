@@ -4,78 +4,60 @@
  * Proprietary and confidential
  */
 
-import * as request               from "request";
-import { SearchResult }           from "@models/search-result";
-import { Settings }               from "@app/zappy.app.settings";
+import * as request               from "request"
+import * as fs                    from "fs"
+import * as querystring           from "querystring";
 import { Logger }                 from "@cli/cli.logger";
+import {Settings} from "@app/zappy.app.settings";
+import {PHttpClient} from "@putte/inet/phttp-client";
 
 export class PriceSearchService {
-	private searchRequest: request;
+	constructor() {}
 
-	constructor() {
-		this.searchRequest = request.defaults({
-			baseUrl: Settings.PriceServiceApi.Endpoint,
-			'headers': {
-				'User-Agent': 'zapStorm/36.3',
-				'Content-Type': 'application/json',
-				'Accept': 'application/json',
-			},
-			'gzip': false,
-			'json': false
+	public doSearch(code: string): Promise<string> {
+		let url = Settings.PriceServiceApi.Endpoint + "/" + code;
+
+		return new Promise((resolve, reject) => {
+			PHttpClient.getHttp(url).then((res) => {
+				Logger.logGreen("PriceSearchService :: doSearch :: success ::", res);
+				resolve(res);
+
+			}).catch((err) => {
+				Logger.logGreen("PriceSearchService :: doSearch :: error ::", err);
+				reject(err);
+			});
 		});
 	}
 
-	public doSearch(code: string): Promise<string> {
-		return new Promise((resolve, reject) => {
-			let payload = {
-				code: code,
-				ext: false
-			};
+	public doSearch2(code: string, useProxy: boolean = false): Promise<any> {
+		let payload = {
+			code: code,
+			ext: false
+		};
+// "http://localhost:6562"
+		let options = {
+			uri: Settings.PriceServiceApi.Endpoint,
+			headers: {
+				'User-Agent': 'zapStorm/36.3',
+				'Content-Type': 'application/json',
+				'Accept': 'application/json',
+			}
+		};
 
-			this.searchRequest.post({data: payload}, (err, httpResponse, resultData) => {
-				if (err) {
-					reject(err);
-				} else {
-					try {
-						console.log("body", resultData);
-						console.log("httpResponse", httpResponse);
-						console.log("resultData", resultData);
-						resolve(resultData);
-					}
-					catch (err) {
-						resolve(null);
-					}
+		let scope = this;
+
+		return new Promise((resolve, reject) => {
+			return request.post(options, { payload }, (error: any, response: any, body: any) => {
+
+				if (!error && response.statusCode == 200) {
+					Logger.logGreen("Success", body);
+					resolve(body);
+				}
+				else {
+					Logger.logError("PostRequest :: Error", error);
+					reject(error);
 				}
 			});
 		});
 	}
 }
-
-/*
-	public generateToken(): Promise<string> {
-		return new Promise((resolve, reject) => {
-			this.searchRequest.post('token.svc/tokenW/GenerateTokenApps', {
-				'body': {
-					'c': 1,
-					'd': uuidv1()
-				}
-			}, (err, httpResponse, body) => {
-				if (err) {
-					reject(err);
-				} else {
-					let resultData: string;
-
-					try {
-						//resultData = Convert.toMusicMagpieTokenResult(body);
-
-						resolve(resultData);
-					}
-					catch (err) {
-						resolve(null);
-					}
-				}
-			});
-		});
-	}
-
- */

@@ -18,12 +18,12 @@ import { IApiController }         from "@api/api-controller";
 import { ServiceApiController }   from "@api/service-api-controller";
 import { CliCommander }           from "@cli/cli.commander";
 import { IZappyApp }              from "@app/zappy.app";
-import {SearchApiController} from "@api/search-api-controller";
+import { SearchApiController }    from "@api/search-api-controller";
 
 export class ZapApp implements IZappyApp {
 	port = 8080;
 	apiControllers: IApiController[];
-	webServer: express.Application;
+	webApp: express.Application;
 	webRoutes: Router = Router();
 
 	db: DbManager;
@@ -35,9 +35,25 @@ export class ZapApp implements IZappyApp {
 
 	constructor(public includeMinerApi: boolean = false) {
 		this.apiControllers = new Array<IApiController>();
-		this.webServer = express();
+		this.webApp = express();
+		this.webApp.use(this.webRoutes);
 		this.db = new DbManager();
 		this.productDb = new ProductDb();
+
+		console.log(" ");
+		console.log(" ");
+
+		console.log(">> webApp.routes", this.webApp.routes);
+		console.log(">> TYPE :: webApp.routes", typeof this.webApp.routes);
+
+		console.log(" ");
+
+		console.log(">> webRoutes", this.webRoutes);
+		console.log(">>TYPE :: webRoutes.routes", typeof this.webRoutes);
+		console.log(" ");
+		console.log(" ");
+
+
 		this.init();
 	}
 
@@ -67,38 +83,26 @@ export class ZapApp implements IZappyApp {
 		controllers.push(new ServiceApiController());
 		controllers.push(new MinerApiController());
 
-		routes.get('/snora', function(req, resp) {
-			resp.json({snor:"ja ett snor-luder"});
-			console.log("SNOR!!!!!");
-		});
-
-		this.webRoutes.get('/robo', function(req, resp) {
-			resp.json({snor:"ja ett snor-luder"});
-			console.log("SNOR!!!!!");
-		});
-
 		//
 		// Pass the Route object to each controller to assign routes
 		//
-		console.log("ADD CONTROLLERS");
 		for (let index in controllers) {
 			let controller = controllers[index];
-			console.log("ADDING ::", controller);
 			controller.initRoutes(routes);
 		}
 	}
 
 	private configureWebServer(): void {
-		let app = this.webServer;
+		let app = this.webApp;
 
 		// set the view engine to ejs
 		app.set('view engine', 'ejs');
 
-		app.use(cookieParser());
-		app.use(bodyParser.json()); // support json encoded bodies
-		app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+		this.webRoutes.use(cookieParser());
+		this.webRoutes.use(bodyParser.json()); // support json encoded bodies
+		this.webRoutes.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-		app.use(function(req, res, next) {
+		this.webRoutes.use(function(req, res, next) {
 			res.header("Access-Control-Allow-Origin", "*");
 			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 			next();
@@ -109,22 +113,12 @@ export class ZapApp implements IZappyApp {
 	 * Initialize The Express Web Server
 	 */
 	private init(): void {
-		let app = this.webServer;
+		const routes = this.webRoutes;
 
 		this.configureWebServer();
 		this.initControllers();
 
-		app.get('/hora', function(req, resp) {
-			resp.json({hora:"ja ett luder"});
-			console.log("HORA!!!!!");
-		});
-
-		app.post('/hora2', function(req, resp) {
-			resp.json({hora:"som fan"});
-			console.log("HORA!!!!!");
-		});
-
-		app.get('/minerstats', function(req, res) {
+		routes.get('/minerstats', function(req, res) {
 			let stat = new MinerStatus();
 			stat.getProgressInfo().then((data) => {
 				console.log(data);
@@ -135,14 +129,14 @@ export class ZapApp implements IZappyApp {
 		// TODO: MOVE TO NGINX
 		// Get Static file
 		//
-		app.use(express.static('public'));
+		this.webApp.use(express.static('public'));
 
-		app.get('/res/:filename', (req, res) => {
+		this.webApp.get('/res/:filename', (req, res) => {
 			let filename = req.params.code;
 			console.log("Get file", filename);
 		});
 
-		app.listen(this.port);
+		this.webApp.listen(this.port);
 		console.log(`Listening on localhost: ${this.port}`);
 	}
 }
