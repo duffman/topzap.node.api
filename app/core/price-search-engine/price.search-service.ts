@@ -8,11 +8,21 @@ import * as request               from "request"
 import * as fs                    from "fs"
 import * as querystring           from "querystring";
 import { Logger }                 from "@cli/cli.logger";
-import {Settings} from "@app/zappy.app.settings";
-import {PHttpClient} from "@putte/inet/phttp-client";
+import { Settings }               from "@app/zappy.app.settings";
+import { PHttpClient }            from "@putte/inet/phttp-client";
 
 export class PriceSearchService {
 	constructor() {}
+
+	public doDebugSearch(code: string): Promise<string> {
+		Logger.logYellow("** DoDebugSearch ::");
+
+		const debugResult = '{"highOffer":0,"vendors":[{"vendorId":12,"accepted":true,"title":"Adventure Time: Pirates of the Enchiridion for Nintendo Switch","offer":"2.85","rawData":null},{"vendorId":11,"accepted":true,"title":"Adventure Time: Pirates of the","offer":"15","rawData":null},{"vendorId":15,"accepted":true,"title":"Adventure Time: Pirates of the Enchiridion for Nintendo Switch","offer":"0.05","rawData":null},{"vendorId":13,"accepted":true,"title":"Adventure Time: Pirates of the Enchiridion","offer":"0.88","rawData":null}]}';
+
+		return new Promise((resolve, reject) => {
+			resolve(debugResult);
+		});
+	}
 
 	public doSearch(code: string): Promise<string> {
 		let url = Settings.PriceServiceApi.Endpoint + "/" + code;
@@ -47,7 +57,8 @@ export class PriceSearchService {
 		let scope = this;
 
 		return new Promise((resolve, reject) => {
-			return request.post(options, { payload }, (error: any, response: any, body: any) => {
+			return request.post(Settings.PriceServiceApi.Endpoint, // <- (Nu mer vaken än i Visby) - testa att sikta den mot URLén
+				options, { payload }, (error: any, response: any, body: any) => {
 
 				if (!error && response.statusCode == 200) {
 					Logger.logGreen("Success", body);

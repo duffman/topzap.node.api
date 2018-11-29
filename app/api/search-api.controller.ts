@@ -9,21 +9,26 @@ import { Express, Router}         from "express";
 import { Request, Response }      from 'express';
 import { Settings }               from "@app/zappy.app.settings";
 import { ProductDb }              from "@db/product-db";
-import { BarcodeParser }          from "@zaplib/barcode-parser";
 import { IApiController }         from "@api/api-controller";
 import { SearchResult }           from "@models/search-result";
 import { ControllerUtils }        from "@api/controller.utils";
 import { PriceSearchService }     from "@core/price-search-engine/price.search-service";
 import { CliCommander }           from "@cli/cli.commander";
+import { IVendorData }            from "@app/zap-data-models/zap-offer.model";
+import { IZapOfferResult }        from "@app/zap-data-models/zap-offer.model";
+import { ZapOfferResult}          from "@app/zap-data-models/zap-offer.model";
+import { BasketApiController }    from "@app/products/basket.controller";
 
 export class SearchApiController implements IApiController {
 	debug: boolean;
-	searchEngine: PriceSearchService;
+	searchService: PriceSearchService;
+	basketController: BasketApiController;
 	productDb: ProductDb;
 
 	constructor() {
 		this.productDb = new ProductDb();
-		this.searchEngine = new PriceSearchService();
+		this.searchService = new PriceSearchService();
+		this.basketController = new BasketApiController();
 	}
 
 	public initRoutes(routes: Router): void {
@@ -33,47 +38,6 @@ export class SearchApiController implements IApiController {
 		// Get Product by Barcode
 		//
 		let extendedProdData = true;
-
-		routes.post("/code2BLABLA", (req, resp) => {
-			// /:code
-			let data = req.body;
-
-			let reqCode = data.ean; //  req.params.code;
-			let fullResult = !data.cache;
-			let debug = data.debug;
-
-			Logger.logGreen("Given Barcode:", data);
-			reqCode = BarcodeParser.prepEan13Code(reqCode, true);
-			Logger.logGreen("Prepared Barcode:", reqCode);
-
-			this.productDb.getProductOffers(reqCode, fullResult, extendedProdData, debug).then((result) => {
-				if (result.product != null) {
-					Logger.logGreen("Product found:", result.product.title);
-					resp.json(result);
-				} else {
-					resp.json(new Error("Not found"));
-				}
-
-
-			}).catch((error) => {
-				Logger.logError("Error in test", error);
-			});
-		});
-
-		//
-		// Get Zap Result by GET barcode
-		//
-		routes.get("/codes", (req: Request, resp: Response) => {
-			console.log("Fet fucking GET CODE");
-			let reqCode = req.params.code;
-
-			scope.callSearchService(reqCode).then((searchRes) => {
-				console.log("JOKER :: SEARCH RESULT ::", searchRes);
-			}).catch((err) => {
-				ControllerUtils.internalError(resp);
-				Logger.logError("SearchApiController :: error ::", err);
-			})
-		});
 
 		//
 		// Get Zap Result by POST barcode
@@ -89,8 +53,6 @@ export class SearchApiController implements IApiController {
 			let data = req.body;
 			let reqCode = data.code;
 
-			console.log("FUCK MY ASS ::: ", reqCode);
-
 			let fullResult = !data.cache;
 			let debug = data.debug;
 
@@ -99,8 +61,11 @@ export class SearchApiController implements IApiController {
 			Logger.logGreen("Prepared Barcode:", reqCode);
 
 			scope.callSearchService(reqCode).then((searchRes) => {
-				console.log("RIDDLER :: SEARCH RESULT ::", searchRes);
-				resp.json(searchRes);
+				resp.setHeader('Content-Type', 'application/json');
+
+				let addResult = this.basketController.addToBasket(req, reqCode, searchRes);
+				//resp.send(searchRes);
+				resp.json(addResult);
 
 			}).catch((err) => {
 				ControllerUtils.internalError(resp);
@@ -117,7 +82,6 @@ export class SearchApiController implements IApiController {
 
 		return new Promise((resolve, reject) => {
 			this.callSearchService(code).then((searchRes) => {
-				console.log("BATMAN :: SEARCH RESULT ::", searchRes);
 				resolve(searchRes);
 			}).catch((err) => {
 				ControllerUtils.internalError(resp);
@@ -126,16 +90,16 @@ export class SearchApiController implements IApiController {
 		});
 	}
 
-	//	public callSearchService(code: string): Promise<SearchResult> {
-
-	public callSearchService(code: string): Promise<string> {
+	public callSearchService(code: string): Promise<IZapOfferResult> {
 		Logger.logGreen("callSearchService");
 		let url = Settings.PriceServiceApi.Endpoint;
 
 		return new Promise((resolve, reject) => {
-			return this.searchEngine.doSearch(code).then((searchResult) => {
+			return this.searchService.doDebugSearch(code).then((searchResult) => {
 				console.log("callSearchService :: doSearch ::", searchResult);
-				resolve(searchResult);
+
+				let result = ZapOfferResult.toZapRes(searchResult);
+				resolve(result);
 
 			}).catch((err) => {
 				console.log("callSearchService :: error ::", err);
@@ -143,7 +107,6 @@ export class SearchApiController implements IApiController {
 			})
 		});
 	}
-
 
 	/**
 	 *
@@ -160,7 +123,6 @@ export class SearchApiController implements IApiController {
 				} else {
 					res.json(new Error("Not found"));
 				}
-
 
 			}).catch((error) => {
 				Logger.logError("Error in test", error);

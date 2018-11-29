@@ -1,12 +1,18 @@
-
-
+/**
+ * Copyright (C) Patrik Forsberg <patrik.forsberg@coldmind.com> - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ *
+ * @author Patrik Forsberg
+ * @date 2018-11-20
+ *
+ */
 
 export class ProductVendor {
 	public vendorName: string;
 	public allowedTypes: ProductType[];
 	public minimumValue: number;
 }
-
 
 export enum ProductType {
 	Unset        = 0,

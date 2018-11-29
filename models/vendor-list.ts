@@ -5,7 +5,7 @@
  * September 2018
  */
 
-import {VendorModel} from "@models/vendor-model";
+import { VendorModel } from "@models/vendor-model";
 
 export class VendorList {
 	list = Array<VendorModel>();

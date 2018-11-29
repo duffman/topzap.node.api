@@ -10,3 +10,6 @@
 [submodule "lib/zynaptic-web"]
 	path = lib/zynaptic-web
 	url = https://github.com/duffman/zynaptic-web.git
+[submodule "lib/zynaptic-igniter"]
+	path = lib/zynaptic-igniter
+	url = https://github.com/duffman/zynaptic-igniter.git

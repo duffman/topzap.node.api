@@ -17,6 +17,7 @@
     "@db/*": ["./database/*"],
     "@miner/*": ["./miner/*"],
     "@models/*": ["./models/*"],
+    "@zynIgniter/*": ["./lib/zynaptic-igniter/*"],
     "@putteDb/*": ["./lib/putte-db/*"],
     "@mongo/*": ["./database/mongodb/*"],
     "@utils/*": ["./lib/utils/*"],

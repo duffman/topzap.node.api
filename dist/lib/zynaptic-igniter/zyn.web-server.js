@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});class ZynWebServer{constructor(){}init(){let result=true;return result;}}exports.ZynWebServer=ZynWebServer;

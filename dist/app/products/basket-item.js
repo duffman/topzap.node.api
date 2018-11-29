@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});class BasketItem{constructor(name,offer,count=1){this.name=name;this.offer=offer;this.count=count;}}exports.BasketItem=BasketItem;

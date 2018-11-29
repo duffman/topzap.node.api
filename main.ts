@@ -26,7 +26,7 @@ export class Main {
 
 	public run(): boolean {
 		try {
-			this.zappy = new ZapApp()
+			this.zappy = new ZapApp();
 			return true;
 		} catch (err) {
 			Logger.logError("Run Failed ::", err);

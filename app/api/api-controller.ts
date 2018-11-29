@@ -7,12 +7,12 @@
  */
 
 import { Router }                 from "express";
+import { IZynMiddleware }         from "@zynIgniter/zyn.middleware";
 
 /**
  * Core Controller
  */
-export interface IWebAppController {
-	initRoutes(routes: Router): void;
+export interface IWebAppController extends IZynMiddleware {
 }
 
 /**

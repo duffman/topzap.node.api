@@ -4,7 +4,6 @@
  * Proprietary and confidential
  */
 
-import * as Promise               from "bluebird";
 import { DbManager }              from "@putteDb/database-manager";
 import { SQLTableDataRow }        from "@putteDb/sql-table-data-row";
 import { Logger }                 from "@cli/cli.logger";
@@ -14,6 +13,7 @@ import { ProductBidModel }        from "@models/product-bid-model";
 import { SearchResult }           from "@models/search-result";
 import { PlatformTypeParser }     from "@utils/platform-type-parser"
 import { PStrUtils }              from "@putte/pstr-utils";
+import {CliCommander} from "@cli/cli.commander";
 
 export class ProductDb {
 	db: DbManager;
@@ -29,7 +29,7 @@ export class ProductDb {
 	// Get Product
 	// - extended adds pltform image info
 	//
-	private getProduct(barcode: string, extended: boolean, debug: boolean = false): Promise<ProductModel> {
+	public getProduct(barcode: string, extended: boolean = true, debug: boolean = false): Promise<ProductModel> {
 		function generateSql(): string {
 			if (!debug) {
 				return `SELECT games.* FROM games, product_edition AS edition WHERE edition.barcode='${barcode}' AND games.id = edition.game_id`;
@@ -161,25 +161,56 @@ export class ProductDb {
 	/**
 	 *
 	 * @param {string} barcode
+	 * @param {boolean} fullResult
+	 * @param {boolean} extendedProdData
+	 * @param {boolean} debug
 	 * @returns {Promise<SearchResult>}
 	 */
-	public getProductOffers(barcode: string, fullResult: boolean, extendedProdData: boolean, debug: boolean = false): Promise<SearchResult> {
+	public getProductOffers(barcode: string,
+							includeVendors: boolean,
+							extendedProdData: boolean,
+							debug: boolean = false): Promise<SearchResult> {
+		let scope = this;
 		let result = new SearchResult();
+
+		function getProductInfo(): Promise<ProductModel> {
+			return this.getProduct(barcode, extendedProdData, debug);
+		}
+
+//		getBidList(barcode: string): Promise<Array<ProductBidModel>>
+
+		function getVendors(): Promise<VendorModel[]> {
+			if (includeVendors) {
+				return this.getVendors;
+
+			} else {
+
+			}
+		}
+
+		async function execute(): Promise<void> {
+			let product = await scope.getProduct(barcode, extendedProdData, debug);
+
+
+
+		}
 
 		///
 		/// Compile the final search result
 		///
 		return new Promise((resolve, reject) => {
+			return execute().then(() => {
+				resolve(result)
+			}).catch((err) => {
+				reject(err);
+			});
+
+			/*
+
 			return this.getProduct(barcode, extendedProdData, debug).then((product) => {
 				result.setProduct(product);
 
-				if (fullResult) {
-					return this.getVendors().then((vendors) => {
-						return vendors;
-					});
-				} else {
-					return [];
-				}
+
 
 			}).then((vendorArray) => {
 				result.vendors = vendorArray;
@@ -187,12 +218,24 @@ export class ProductDb {
 				return this.getBidList(barcode).then((bids) => {
 					return bids;
 				});
-
 			}).then((bidsArray) => {
 				result.bids = bidsArray; //setBidList(bidsList);
 
 				resolve(result);
-			});
+			});*/
 		});
 	}
-} 
+}
+
+if (CliCommander.debug()) {
+	console.log("DEBUG!");
+	let debug = new ProductDb();
+	debug.getProduct("0819338020068").then((res) => {
+		console.log("ProductDb ::", res);
+	}).catch((err) => {
+		console.log("ProductDb :: err", err);
+	});
+
+} else {
+	console.log("NO DEBUG!");
+}
