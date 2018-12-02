@@ -5,22 +5,22 @@
  * September 2018
  */
 
-import {ProductModel} from "@models/product-model";
-import {VendorList} from "@models/vendor-list";
-import {ProductBidList} from "@models/product-bid-list";
-import {VendorModel} from "@models/vendor-model";
-import {ProductBidModel} from "@models/product-bid-model";
+import { VendorList} from "@models/vendor-list";
+import { ProductBidList } from "@models/product-bid-list";
+import { VendorModel } from "@models/vendor-model";
+import { ProductBidModel } from "@models/product-bid-model";
+import {IProductData, ProductData} from '@zapModels/product.model';
 
 export class SearchResult {
 	public success: boolean = true;
-	public product: ProductModel;
+	public product: IProductData;
 	public vendors: Array<VendorModel>;
 	public bids: Array<ProductBidModel>;
 	public errorMessage: string;
 
 	constructor() {}
 
-	public setProduct(product: ProductModel) {
+	public setProduct(product: IProductData) {
 		this.product = product;
 	}
 

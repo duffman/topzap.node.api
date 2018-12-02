@@ -8,21 +8,27 @@ import { Express, Router }        from "express";
 import { Request, Response }      from "express";
 import { IApiController }         from "@api/api-controller";
 import { ProductDb }              from "@db/product-db";
-import { ProductModel }           from "@models/product-model";
 import { Logger }                 from "@cli/cli.logger";
+import { ZapErrorResult }         from '@zapModels/zap-error-result';
+import { IProductData }           from '@zapModels/product.model';
+import { ProductDataResult }      from '@zapModels/product-data-result';
+import { IProductsController }    from '@app/products/products.controller';
+import { ProductsController }     from '@app/products/products.controller';
 
 export class ProductApiController implements IApiController {
+	controller: IProductsController;
 	productDb: ProductDb;
 
 	constructor() {
+		this.controller = new ProductsController();
 		this.productDb = new ProductDb();
 	}
 
-	public getProduct(barcode: string): Promise<ProductModel> {
+	public getProduct(barcode: string): Promise<IProductData> {
 		return new Promise((resolve, reject) => {
 			this.productDb.getProduct(barcode).then((res) => {
 				resolve(res);
-				Logger.log("getProduct ::", res);
+				console.log("%%%%% ::: getProduct ::", res);
 			}).catch((err) => {
 				Logger.logError("ProductApiController :: getProduct :: error ::", err);
 				reject(err);
@@ -49,20 +55,25 @@ export class ProductApiController implements IApiController {
 			let code = req.body.code;
 
 			console.log("CODE :: ", code);
+			let productResult = new ProductDataResult();
 
-			scope.getProduct(code).then((prodResult) => {
-				Logger.log("ProductApiController :: getProduct ::", prodResult);
+			scope.getProduct(code).then((productData) => {
+				productResult.success = true;
+				productResult.productData = productData;
 
-				console.log("KKKKK ::", JSON.stringify(prodResult))
+				//Logger.log("routes.post/prod :: ProductApiController :: getProduct ::", productData);
+				//console.log("routes.post/prod :: JSON.stringify :: getProduct ::", JSON.stringify(productData))
 
-				resp.json(prodResult);
+				resp.json(productResult);
 
 			}).catch((err) => {
 				Logger.logError("ProductApiController :: error ::", err);
-				resp.json({
-					result: "fail",
-					errorCode: 6667
-				});
+				let zapError = new ZapErrorResult(6667, "error-getting-item");
+
+				productResult.success = false;
+				productResult.error = zapError;
+
+				resp.json(productResult);
 			});
 		});
 

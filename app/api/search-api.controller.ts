@@ -11,13 +11,13 @@ import { Settings }               from "@app/zappy.app.settings";
 import { ProductDb }              from "@db/product-db";
 import { IApiController }         from "@api/api-controller";
 import { SearchResult }           from "@models/search-result";
-import { ControllerUtils }        from "@api/controller.utils";
+import { ApiControllerUtils }        from "@api/controller.utils";
 import { PriceSearchService }     from "@core/price-search-engine/price.search-service";
 import { CliCommander }           from "@cli/cli.commander";
-import { IVendorData }            from "@app/zap-data-models/zap-offer.model";
-import { IZapOfferResult }        from "@app/zap-data-models/zap-offer.model";
-import { ZapOfferResult}          from "@app/zap-data-models/zap-offer.model";
-import { BasketApiController }    from "@app/products/basket.controller";
+import { IVendorData }            from "@app/zap-ts-models/zap-offer.model";
+import { IZapOfferResult }        from "@app/zap-ts-models/zap-offer.model";
+import { ZapOfferResult}          from "@app/zap-ts-models/zap-offer.model";
+import { BasketApiController }    from "@app/products/basket-api.controller";
 
 export class SearchApiController implements IApiController {
 	debug: boolean;
@@ -28,11 +28,11 @@ export class SearchApiController implements IApiController {
 	constructor() {
 		this.productDb = new ProductDb();
 		this.searchService = new PriceSearchService();
-		this.basketController = new BasketApiController();
 	}
 
 	public initRoutes(routes: Router): void {
 		let scope = this;
+
 
 		//
 		// Get Product by Barcode
@@ -63,12 +63,16 @@ export class SearchApiController implements IApiController {
 			scope.callSearchService(reqCode).then((searchRes) => {
 				resp.setHeader('Content-Type', 'application/json');
 
-				let addResult = this.basketController.addToBasket(req, reqCode, searchRes);
+				//this.reqSession = req.session;
+				//let addResult = this.basketController.addToBasket(reqCode, searchRes);
 				//resp.send(searchRes);
-				resp.json(addResult);
+				//resp.json(addResult);
+				resp.json(
+					{test: "kalle"}
+					);
 
 			}).catch((err) => {
-				ControllerUtils.internalError(resp);
+				ApiControllerUtils.internalError(resp);
 				Logger.logError("SearchApiController :: error ::", err);
 			})
 		});
@@ -84,7 +88,7 @@ export class SearchApiController implements IApiController {
 			this.callSearchService(code).then((searchRes) => {
 				resolve(searchRes);
 			}).catch((err) => {
-				ControllerUtils.internalError(resp);
+				ApiControllerUtils.internalError(resp);
 				Logger.logError("SearchApiController :: error ::", err);
 			})
 		});

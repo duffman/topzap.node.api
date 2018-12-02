@@ -6,7 +6,7 @@
 
 import { Express, Router }        from "express";
 import { Request, Response }      from 'express';
-import { ControllerUtils }        from "@api/controller.utils";
+import { ApiControllerUtils }        from "@api/controller.utils";
 import { MinerDb}                 from "@miner/miner-db";
 import { IMinerWorkItem }         from "@miner/miner-session-model";
 import { MinerErrorLogEntry}      from "@miner/miner-session-model";
@@ -60,7 +60,7 @@ export class MinerApiController implements IApiController {
 				resp.json(res);
 
 			}).catch((err: Error) => {
-				ControllerUtils.internalError(resp);
+				ApiControllerUtils.internalError(resp);
 			});
 		});
 
@@ -85,7 +85,7 @@ export class MinerApiController implements IApiController {
 				resp.json(res);
 
 			}).catch((err: Error) => {
-				ControllerUtils.internalError(resp);
+				ApiControllerUtils.internalError(resp);
 			});
 		});
 
@@ -146,7 +146,7 @@ export class MinerApiController implements IApiController {
 
 			}).catch((err) => {
 				Logger.logError("Error updating work item ::", err);
-				ControllerUtils.internalError(res, err.message);
+				ApiControllerUtils.internalError(res, err.message);
 			});
 		});
 	}

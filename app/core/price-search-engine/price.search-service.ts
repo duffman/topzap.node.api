@@ -11,7 +11,13 @@ import { Logger }                 from "@cli/cli.logger";
 import { Settings }               from "@app/zappy.app.settings";
 import { PHttpClient }            from "@putte/inet/phttp-client";
 
-export class PriceSearchService {
+
+export interface IPriceSearchService {
+	doDebugSearch(code: string): Promise<string>;
+	doSearch(code: string): Promise<string>;
+}
+
+export class PriceSearchService implements IPriceSearchService {
 	constructor() {}
 
 	public doDebugSearch(code: string): Promise<string> {

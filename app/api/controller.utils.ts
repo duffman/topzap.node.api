@@ -7,7 +7,7 @@
 import { Express }                from "express";
 import { Request, Response }      from 'express';
 
-export class ControllerUtils {
+export class ApiControllerUtils {
 	public static internalError(res: Response, message: string = "") {
 		res.writeHead(501, {'Content-Type': 'text/plain'});
 		res.end(message);

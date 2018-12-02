@@ -7,13 +7,14 @@
 import { DbManager }              from "@putteDb/database-manager";
 import { SQLTableDataRow }        from "@putteDb/sql-table-data-row";
 import { Logger }                 from "@cli/cli.logger";
-import { ProductModel }           from "@models/product-model";
 import { VendorModel }            from "@models/vendor-model";
 import { ProductBidModel }        from "@models/product-bid-model";
 import { SearchResult }           from "@models/search-result";
 import { PlatformTypeParser }     from "@utils/platform-type-parser"
 import { PStrUtils }              from "@putte/pstr-utils";
-import {CliCommander} from "@cli/cli.commander";
+import { CliCommander }           from "@cli/cli.commander";
+import { IProductData }           from '@zapModels/product.model';
+import { ProductData }            from '@zapModels/product.model';
 
 export class ProductDb {
 	db: DbManager;
@@ -29,7 +30,7 @@ export class ProductDb {
 	// Get Product
 	// - extended adds pltform image info
 	//
-	public getProduct(barcode: string, extended: boolean = true, debug: boolean = false): Promise<ProductModel> {
+	public getProduct(barcode: string, extended: boolean = true, debug: boolean = false): Promise<IProductData> {
 		function generateSql(): string {
 			if (!debug) {
 				return `SELECT games.* FROM games, product_edition AS edition WHERE edition.barcode='${barcode}' AND games.id = edition.game_id`;
@@ -42,12 +43,13 @@ export class ProductDb {
 
 		Logger.logGreen("SQL ::", sql);
 
-		function createProductModel(dbRow: SQLTableDataRow): ProductModel {
+		function createProductModel(dbRow: SQLTableDataRow): IProductData {
 			if (dbRow.isEmpty) {
-				return new ProductModel();
+				return new ProductData();
 			} else {
-				return new ProductModel(
-					dbRow.getValAsStr("id"),
+				return new ProductData(
+					dbRow.getValAsInt("id"),
+					barcode,
 					dbRow.getValAsStr("platform_name"),
 					dbRow.getValAsStr("title"),
 					dbRow.getValAsStr("publisher"),
@@ -126,9 +128,9 @@ export class ProductDb {
 	}
 
 	//
-	// Get Bids
+	// Get Stored (mined) Bids
 	//
-	private getBidList(barcode: string): Promise<Array<ProductBidModel>> {
+	private obsolete_getBidList(barcode: string): Promise<Array<ProductBidModel>> {
 		let result = new Array<ProductBidModel>();
 		let sql = `SELECT * FROM product_bid WHERE barcode='${barcode}'`;
 
@@ -166,14 +168,14 @@ export class ProductDb {
 	 * @param {boolean} debug
 	 * @returns {Promise<SearchResult>}
 	 */
-	public getProductOffers(barcode: string,
+	public obsolete_getProductOffers(barcode: string,
 							includeVendors: boolean,
 							extendedProdData: boolean,
 							debug: boolean = false): Promise<SearchResult> {
 		let scope = this;
 		let result = new SearchResult();
 
-		function getProductInfo(): Promise<ProductModel> {
+		function getProductInfo(): Promise<IProductData> {
 			return this.getProduct(barcode, extendedProdData, debug);
 		}
 
@@ -182,7 +184,6 @@ export class ProductDb {
 		function getVendors(): Promise<VendorModel[]> {
 			if (includeVendors) {
 				return this.getVendors;
-
 			} else {
 
 			}
@@ -190,9 +191,6 @@ export class ProductDb {
 
 		async function execute(): Promise<void> {
 			let product = await scope.getProduct(barcode, extendedProdData, debug);
-
-
-
 		}
 
 		///

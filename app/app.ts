@@ -24,7 +24,7 @@ import { SearchApiController }    from "@api/search-api.controller";
 import { ProductApiController }   from "@api/product-api.controller";
 import { IZynMiddleware }         from "@zynIgniter/zyn.middleware";
 import { ZynSession }             from "@zynIgniter/zyn.session";
-import { BasketApiController } from "@app/products/basket.controller";
+import { BasketApiController } from "@app/products/basket-api.controller";
 
 export class ZapApp implements IZappyApp {
 	port = 8080;
@@ -85,18 +85,6 @@ export class ZapApp implements IZappyApp {
 		}
 	}
 
-	//
-	// This is really bad design, but until we have DI, this OK for now,,,
-	//
-	public test(barcode: string): Promise<SearchResult> {
-		return new Promise<SearchResult>((resolve, reject) => {
-			this.productDb.getProductOffers(barcode, false,false).then((result) => {
-				resolve(result)
-			}).catch((error) => {
-				Logger.logError("Error in test", error);
-			});
-		});
-	}
 
 	/**
 	 * Create child controllers and let each controlller
