@@ -6,7 +6,7 @@
 
 import { MinerStatus }            from "@miner/miner-status";
 import * as express               from "express";
-import {NextFunction, Router} from "express";
+import { NextFunction, Router }   from "express";
 import * as bodyParser            from "body-parser";
 import * as cookieParser          from "cookie-parser";
 import * as session               from "express-session";
@@ -116,7 +116,7 @@ export class ZapApp implements IZappyApp {
 		this.webApp.set('view engine', 'ejs');
 
 		function genuuid(): string {
-			console.log("Generate ID::::")
+			console.log("Generate ID::::");
 			return "uidSafe(18)";
 		}
 
@@ -132,7 +132,7 @@ export class ZapApp implements IZappyApp {
 
 		//routes.use(session(sessionSettings));
 
-		routes.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}))
+		routes.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}));
 
 		routes.use(cookieParser());
 		routes.use(bodyParser.json()); // support json encoded bodies
@@ -143,7 +143,6 @@ export class ZapApp implements IZappyApp {
 			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 			next();
 		});
-
 	}
 
 	/**

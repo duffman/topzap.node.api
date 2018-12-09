@@ -8,8 +8,13 @@ import { Express }                from "express";
 import { Request, Response }      from 'express';
 
 export class ApiControllerUtils {
-	public static internalError(res: Response, message: string = "") {
-		res.writeHead(501, {'Content-Type': 'text/plain'});
-		res.end(message);
+	public static internalError(resp: Response, message: string = "") {
+		resp.writeHead(501, {'Content-Type': 'text/plain'});
+		resp.end(message);
+	}
+
+	public static bogusError(resp: Response, message: string = "") {
+		resp.writeHead(501, {'Content-Type': 'text/plain'});
+		resp.end(message);
 	}
 }

@@ -3,13 +3,16 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  */
-import { IApiController } from "@api/api-controller";
-import {Router} from "express";
-import {Logger} from "@cli/cli.logger";
+import { IApiController }         from "@api/api-controller";
+import { Request }                from "express";
+import { Response }               from "express";
+import { Router }                 from "express";
+import { Logger }                 from "@cli/cli.logger";
 
 export class ServiceApiController implements IApiController {
 	public initRoutes(routes: Router) {
 		let scope = this;
+
 
 		//
 		// Get Miner Session
