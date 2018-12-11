@@ -12,14 +12,14 @@ import { Logger }                 from "@cli/cli.logger";
 import { ZapErrorResult }         from '@zapModels/zap-error-result';
 import { IProductData }           from '@zapModels/product.model';
 import { ProductDataResult }      from '@zapModels/product-data-result';
-import { IProductsController }    from '@app/products/products.controller';
-import { ProductsController }     from '@app/products/products.controller';
+import { IProductsController }    from '@app/components/product/products.controller';
+import { ProductsController }     from '@app/components/product/products.controller';
 
 export class ProductApiController implements IApiController {
 	controller: IProductsController;
 	productDb: ProductDb;
 
-	constructor() {
+	constructor(public debugMode: boolean = false) {
 		this.controller = new ProductsController();
 		this.productDb = new ProductDb();
 	}

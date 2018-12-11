@@ -7,6 +7,7 @@
 import { MinerStatus }            from "@miner/miner-status";
 import * as express               from "express";
 import { NextFunction, Router }   from "express";
+import { ErrorRequestHandler }    from "express";
 import * as bodyParser            from "body-parser";
 import * as cookieParser          from "cookie-parser";
 import * as session               from "express-session";
@@ -24,10 +25,14 @@ import { SearchApiController }    from "@api/search-api.controller";
 import { ProductApiController }   from "@api/product-api.controller";
 import { IZynMiddleware }         from "@zynIgniter/zyn.middleware";
 import { ZynSession }             from "@zynIgniter/zyn.session";
-import { BasketApiController } from "@app/products/basket-api.controller";
+import { BasketApiController } from "@app/components/basket/basket-api.controller";
 
 export class ZapApp implements IZappyApp {
+	static developmentMode = false;
+
 	port = 8080;
+	debugMode: boolean = false;
+
 	apiControllers: IApiController[];
 	webApp: express.Application;
 	webAppMiddleware: IZynMiddleware[];
@@ -36,8 +41,9 @@ export class ZapApp implements IZappyApp {
 	db: DbManager;
 	productDb: ProductDb;
 
-	getVersion(): string {
-		return "ZapApp-Node-API/1.6.5";
+	version: string = "1.6.5";
+	getAppVersion(): string {
+		return "ZapApp-Node-API/" + this.version;
 	}
 
 	getSecret(): string {
@@ -94,11 +100,11 @@ export class ZapApp implements IZappyApp {
 		const routes = this.webRoutes;
 		const controllers = this.apiControllers;
 
-		controllers.push(new SearchApiController());
-		controllers.push(new ServiceApiController());
-		controllers.push(new ProductApiController());
-		controllers.push(new MinerApiController());
-		controllers.push(new BasketApiController());
+		controllers.push(new SearchApiController(this.debugMode));
+		controllers.push(new ServiceApiController(this.debugMode));
+		controllers.push(new ProductApiController(this.debugMode));
+		controllers.push(new MinerApiController(this.debugMode));
+		controllers.push(new BasketApiController(this.debugMode));
 
 		//
 		// Pass the Route object to each controller to assign routes
@@ -138,11 +144,49 @@ export class ZapApp implements IZappyApp {
 		routes.use(bodyParser.json()); // support json encoded bodies
 		routes.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
+
 		routes.use(function(req, res, next) {
 			res.header("Access-Control-Allow-Origin", "*");
 			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 			next();
 		});
+
+		routes.use(function (err, req, res, next) {
+			res.status(err.status || 500);
+			res.render('error', {
+				message: "err.message",
+				error: {}
+			});
+		});
+
+		//this.setErrorMiddleware();
+	}
+
+	private setErrorMiddleware(){
+		//
+		// Error middleware
+		//
+		if (ZapApp.developmentMode) {
+			this.webApp.use(function(err, req, res, next) {
+				res.status(err.status || 500);
+				res.render('error', {
+					message: err.message,
+					error: err
+				});
+			});
+
+		} else {
+			// production error handler
+			// no stacktraces leaked to user
+
+			this.webApp.use(function (err, req, res, next) {
+				res.status(err.status || 500);
+				res.render('error', {
+					message: err.message,
+					error: {}
+				});
+			});
+		}
 	}
 
 	/**

@@ -19,4 +19,5 @@ export interface IWebAppController extends IZynMiddleware {
  * API Controller
  */
 export interface IApiController extends IWebAppController {
+	debugMode: boolean;
 }

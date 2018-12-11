@@ -20,7 +20,7 @@ import { IApiController }         from "@api/api-controller";
 export class MinerApiController implements IApiController {
 	minerDb: MinerDb;
 
-	constructor() {
+	constructor(public debugMode: boolean = false) {
 		this.minerDb = new MinerDb();
 	}
 

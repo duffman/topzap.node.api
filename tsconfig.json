@@ -10,6 +10,7 @@
   "baseUrl": "./",
   "paths": {
     "@app/*": ["./app/*"],
+    "@components/*": ["./app/components/*"],
     "@cms/*": ["./app/admini-cms/*"],
     "@api/*": ["./app/api/*"],
     "@core/*": ["./app/core/*"],

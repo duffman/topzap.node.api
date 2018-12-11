@@ -4,12 +4,6 @@
  * Proprietary and confidential
  */
 
-/**
- * Provides the interface for Zap - Puppy apps, each Zappy is usually built as a MicroService
- */
-export interface IZappyApp {
+export interface IColdmindNode {
 	debugMode: boolean;
-	version: string;
-	getAppVersion(): string;
-	getSecret(): string;
 }

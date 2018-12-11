@@ -30,59 +30,29 @@ import { Settings }               from "@app/zappy.app.settings";
 import { ApiControllerUtils }     from "@api/controller.utils";
 import { ProductApiController }   from '@api/product-api.controller';
 import { IProductData }           from '@zapModels/product.model';
-import {PRandNum} from '@putte/prand-num';
-import {PVarUtils} from '@putte/pvar-utils';
+import { PRandNum }               from '@putte/prand-num';
+import { PVarUtils }              from '@putte/pvar-utils';
+import { SessionPullResult }      from '@zapModels/session-pull-result';
+import {SessionManager} from '@components/session/session-manager';
 
 export class BasketApiController implements IApiController{
 	productApiController: ProductApiController;
 	searchService: IPriceSearchService;
-	sessionBasket: ISessionBasket;
-	reqSession: any;
 
-	constructor() {
+	sessManager: SessionManager;
+
+	constructor(public debugMode: boolean = false) {
+		this.sessManager = new SessionManager();
 		this.searchService = new PriceSearchService();
 	}
 
 	private echoDebug() {
-		for (let i = 0; i < this.sessionBasket.data.length; i++) {
-			let basket = this.sessionBasket.data[i];
+		for (let i = 0; i < this.sessManager.sessionBasket.data.length; i++) {
+			let basket = this.sessManager.sessionBasket.data[i];
 			console.log("Vendor :: " + basket.vendorId, basket.items);
 		}
 	}
 
-	private getSessionBasket(): ISessionBasket {
-		try {
-			if (this.reqSession.sessionBasket) {
-				this.sessionBasket = this.reqSession.sessionBasket as ISessionBasket;
-				console.log("SESSION BASKET ::", this.sessionBasket);
-
-			} else {
-				this.reqSession.sessionBasket = new SessionBasket();
-				this.sessionBasket = this.reqSession.sessionBasket;
-			}
-
-			return this.sessionBasket;
-
-		} catch (ex) {
-			return null;
-		}
-	}
-
-	private setSessionBasket(basket: ISessionBasket = null): boolean {
-		try {
-			if (basket === null) {
-				basket = this.sessionBasket;
-			}
-
-			this.reqSession.sessionBasket = basket; //this.sessionBasket;
-
-		} catch (err) {
-			console.log("setSessionBasket :: err ::", err);
-			return false;
-		}
-
-		return true;
-	}
 
 	private getHighestBidder(offerData: IZapOfferResult): IVendorData {
 		let highVendor: IVendorData = null;
@@ -113,8 +83,8 @@ export class BasketApiController implements IApiController{
 	public getVendorBasket(vendorId: number): IBasketModel {
 		let result: IVendorBasket = null;
 
-		for (let i = 0; i < this.sessionBasket.data.length; i++) {
-			let basket = this.sessionBasket.data[i];
+		for (let i = 0; i < this.sessManager.sessionBasket.data.length; i++) {
+			let basket = this.sessManager.sessionBasket.data[i];
 			if (basket.vendorId === vendorId) {
 				result = basket;
 				break;
@@ -123,7 +93,7 @@ export class BasketApiController implements IApiController{
 
 		if (result === null) {
 			result = new VendorBasketModel(vendorId);
-			this.sessionBasket.data.push(result);
+			this.sessManager.sessionBasket.data.push(result);
 		}
 
 		return result;
@@ -149,7 +119,7 @@ export class BasketApiController implements IApiController{
 
 	public addToBasket(code: string, offerData: IZapOfferResult): IBasketAddResult {
 		let scope = this;
-		let vendorBaskets = this.getSessionBasket();
+		let vendorBaskets = this.sessManager.getSessionBasket();
 		let highVendor: IVendorData = null;
 		let highBidItem: IBasketItem = null;
 
@@ -196,9 +166,9 @@ export class BasketApiController implements IApiController{
 
 		console.log("3 ::");
 
-		this.setSessionBasket();
+		this.sessManager.setSessionBasket();
 
-		console.log("BASKETS ::", this.sessionBasket);
+		console.log("BASKETS ::", this.sessManager.sessionBasket);
 		this.echoDebug();
 
 		return addResult;
@@ -220,7 +190,7 @@ export class BasketApiController implements IApiController{
 	}
 
 	public getBestBasket(): IBasketModel {
-		let vendorBaskets = this.getSessionBasket();
+		let vendorBaskets = this.sessManager.getSessionBasket();
 		let bestTotal: number = 0;
 		let bestBaset: IBasketModel = null;
 
@@ -249,7 +219,7 @@ export class BasketApiController implements IApiController{
 	private addProductInfoToSession(code: string): Promise<boolean> {
 		let scope = this;
 
-		let sessionBasket = this.getSessionBasket();
+		let sessionBasket = this.sessManager.getSessionBasket();
 
 		console.log("%%%%% ::: sessionBasket :::", sessionBasket);
 
@@ -258,8 +228,8 @@ export class BasketApiController implements IApiController{
 		console.log("%%%%% ::: sessionBasket.productData :::", sessionBasket.productData);
 
 		if (!data) {
-			scope.sessionBasket.productData = new Array<IProductData>();
-			scope.setSessionBasket();
+			scope.sessManager.sessionBasket.productData = new Array<IProductData>();
+			scope.sessManager.setSessionBasket();
 		}
 
 		function haveProductData(code: string): boolean {
@@ -278,8 +248,8 @@ export class BasketApiController implements IApiController{
 			} else {
 				let prodApi = new ProductApiController();
 				return prodApi.getProduct(code).then(res => {
-					scope.sessionBasket.productData.push(res);
-					scope.setSessionBasket();
+					scope.sessManager.sessionBasket.productData.push(res);
+					scope.sessManager.setSessionBasket();
 					resolve(true);
 				}).catch(err => {
 					resolve(false);
@@ -294,7 +264,7 @@ export class BasketApiController implements IApiController{
 		let data = req.body;
 		let code = data.code;
 
-		let basket = this.getSessionBasket();
+		let basket = this.sessManager.getSessionBasket();
 
 		let prodIdx = basket.productData.indexOf(basket.productData.find(i => i.code === code));
 
@@ -304,14 +274,24 @@ export class BasketApiController implements IApiController{
 		}
 
 		// Remove basked item in all vendor baskets
-		for (const vendorBasket of basket.data) {
+		for (let vendorBasket of basket.data) {
 			let itemIdx = vendorBasket.items.indexOf(vendorBasket.items.find(i => i.code === code));
 			if (PVarUtils.isNumber(itemIdx)) {
 				vendorBasket.items.splice(itemIdx, 1);
+
+				// If this was the last item, let´s remove the vendor basket from the
+				// data array of Session vendor baskets
+				if (vendorBasket.items.length === 0) {
+					vendorBasket = null;
+				}
 			}
 		}
 
-		this.setSessionBasket(basket);
+		this.sessManager.setSessionBasket(basket);
+
+		// Call the get session basket in order to return
+		// the current basket
+		this.apiPullSession(req, resp);
 
 		console.log("NEW BASKET :: DELETE ::", basket);
 		console.log("DELETE ::", code);
@@ -320,7 +300,7 @@ export class BasketApiController implements IApiController{
 	private apiAddBasketItem(req: Request, resp: Response): void {
 		let scope = this;
 		let result: IBasketAddResult;
-		this.reqSession = req.session;
+		this.sessManager.assignRequest(req);
 
 		let data = req.body;
 		let code = data.code;
@@ -342,11 +322,11 @@ export class BasketApiController implements IApiController{
 			// result info, it was this or send prod data for each item, this produces a ligher
 			// result but we have to manage the life cycle of the prod result, i.e no basket item with
 			// the product code, drop the product...
-			result.prodData = scope.sessionBasket.productData;
+			result.prodData = scope.sessManager.sessionBasket.productData;
 
-			console.log("%%%%% ::: scope.sessionBasket.productData ::", scope.sessionBasket.productData);
+			console.log("%%%%% ::: scope.sessManager.sessionBasket.productData ::", scope.sessManager.sessionBasket.productData);
 			console.log("%%%%% ::: scope.addToBasket ::", result);
-			console.log("%%%%% ::: apiAddBasketItem ::", scope.sessionBasket);
+			console.log("%%%%% ::: apiAddBasketItem ::", scope.sessManager.sessionBasket);
 		}
 
 		doAdd().then(() => {
@@ -367,7 +347,7 @@ export class BasketApiController implements IApiController{
 	/*
 	private apiAddBasketItem(req: Request, resp: Response): Promise<void> {
 		let scope = this;
-		this.reqSession = req.session;
+		this.sessManager.assignRequest(req);
 
 		let data = req.body;
 		let reqCode = data.code;
@@ -404,7 +384,7 @@ export class BasketApiController implements IApiController{
 
 
 	private apiGetBasket(req: Request, resp: Response) {
-		this.reqSession = req.session;
+		this.sessManager.assignRequest(req);
 
 		let basketResult = new ZapBasketData();
 
@@ -416,9 +396,8 @@ export class BasketApiController implements IApiController{
 		// resp.setHeader('Content-Type', 'text/html')
 		resp.setHeader('Content-Type', 'application/json');
 		resp.end( JSON.stringify(basketResult));
-
 	}
-	
+
 	/**
 	 * Returns the stores session basket, this method is usually called by the
 	 * client upon a reload...
@@ -429,20 +408,35 @@ export class BasketApiController implements IApiController{
 	 * @param {e.Request} req
 	 * @param {e.Response} resp
 	 */
-	private apiPullSessionBasket(req: Request, resp: Response) {
+	private apiPullSession(req: Request, resp: Response) {
 		try {
-			let sessionBasket = this.getSessionBasket();
+			let sessionBasket = this.sessManager.getSessionBasket();
+
 			let bestBasket = this.getBestBasket();
 
 			// Emulate the add where we only send the best basket
-			// We might get some unwanted product info if a lower bid basket have products that
+			// We might get some unwanted product info if a lower bid basket have product that
 			// the best basket don´t have, but what the hell...
-			let tmpSessionBasket = new SessionBasket();
-			tmpSessionBasket.productData = sessionBasket.productData;
-			tmpSessionBasket.data.push(bestBasket as IVendorBasket);
+			let sessionPullResult = new SessionPullResult(true);
+
+			try {
+				let tmpSessionBasket = new SessionBasket();
+				tmpSessionBasket.productData = sessionBasket.productData;
+				let bestBasketResult = bestBasket as IVendorBasket;
+
+				if (bestBasketResult !== null) {
+					tmpSessionBasket.data.push(bestBasketResult);
+				}
+
+				sessionPullResult.productData = tmpSessionBasket.productData;
+				sessionPullResult.data = tmpSessionBasket.data;
+
+			} catch (err) {
+				sessionPullResult.success = false;
+			}
 
 			resp.setHeader('Content-Type', 'application/json');
-			resp.end( JSON.stringify(tmpSessionBasket));
+			resp.end( JSON.stringify(sessionPullResult));
 
 		} catch (ex) {
 			ApiControllerUtils.bogusError(resp,"GraphQL Error: 478");
@@ -453,7 +447,7 @@ export class BasketApiController implements IApiController{
 		routes.get("/basket", this.apiGetBasket.bind(this));
 		routes.post("/basket/add", this.apiAddBasketItem.bind(this));
 		routes.post("/basket/del", this.apiDeleteBasketItem.bind(this));
-		routes.post("/basket/pull", this.apiPullSessionBasket.bind(this));
+		routes.post("/basket/pull", this.apiPullSession.bind(this));
 	}
 
 	public callSearchService(code: string): Promise<IZapOfferResult> {

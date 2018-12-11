@@ -10,9 +10,10 @@ import { Router }                 from "express";
 import { Logger }                 from "@cli/cli.logger";
 
 export class ServiceApiController implements IApiController {
+	constructor(public debugMode: boolean = false) {}
+
 	public initRoutes(routes: Router) {
 		let scope = this;
-
 
 		//
 		// Get Miner Session

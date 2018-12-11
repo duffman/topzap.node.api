@@ -11,21 +11,20 @@ import { Settings }               from "@app/zappy.app.settings";
 import { ProductDb }              from "@db/product-db";
 import { IApiController }         from "@api/api-controller";
 import { SearchResult }           from "@models/search-result";
-import { ApiControllerUtils }        from "@api/controller.utils";
+import { ApiControllerUtils }     from "@api/controller.utils";
 import { PriceSearchService }     from "@core/price-search-engine/price.search-service";
 import { CliCommander }           from "@cli/cli.commander";
 import { IVendorData }            from "@app/zap-ts-models/zap-offer.model";
 import { IZapOfferResult }        from "@app/zap-ts-models/zap-offer.model";
 import { ZapOfferResult}          from "@app/zap-ts-models/zap-offer.model";
-import { BasketApiController }    from "@app/products/basket-api.controller";
+import { BasketApiController }    from "@app/components/basket/basket-api.controller";
 
 export class SearchApiController implements IApiController {
-	debug: boolean;
 	searchService: PriceSearchService;
 	basketController: BasketApiController;
 	productDb: ProductDb;
 
-	constructor() {
+	constructor(public debugMode: boolean = false) {
 		this.productDb = new ProductDb();
 		this.searchService = new PriceSearchService();
 	}
@@ -120,7 +119,7 @@ export class SearchApiController implements IApiController {
 	public getFromDatabase(barcode: string): Promise<SearchResult> {
 		let fullResult =
 		return new Promise((resolve, reject) => {
-			this.productDb.getProductOffers(reqCode, fullResult, extendedProdData, debug).then((result) => {
+			this.productDb.getProductOffers(reqCode, fullResult, extendedProdData, debugMode).then((result) => {
 				if (result.product != null) {
 					Logger.logGreen("Product found:", result.product.title);
 					res.json(result);

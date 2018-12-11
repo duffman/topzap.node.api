@@ -6,7 +6,14 @@
 import { IZappyApp }              from "@app/zappy.app";
 
 export class ZappyAppCore implements IZappyApp {
-	public getVersion(): string {
-		return "topzap.node.api//"
+	debugMode: boolean;
+
+	version: string = "0.7.1";
+	getAppVersion(): string {
+		return "topzap.node.api/" + this.version;
+	}
+
+	getSecret(): string {
+		return "ZapApp-Node-API/WillyW0nka";
 	}
 }

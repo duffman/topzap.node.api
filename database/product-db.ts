@@ -205,7 +205,7 @@ export class ProductDb {
 
 			/*
 
-			return this.getProduct(barcode, extendedProdData, debug).then((product) => {
+			return this.getProduct(barcode, extendedProdData, debugMode).then((product) => {
 				result.setProduct(product);
 
 

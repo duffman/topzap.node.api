@@ -17,16 +17,19 @@
  * Created by Patrik Forsberg - 2018
  */
 
+import { IColdmindNode }          from '@app/types/coldmind-node';
 import { IZappyApp }              from "@app/zappy.app";
-import {Logger} from "@cli/cli.logger";
-import {ZapApp} from "@app/app";
+import { Logger }                 from "@cli/cli.logger";
+import { ZapApp }                 from "@app/app";
+import { CliCommander }           from '@cli/cli.commander';
 
-export class Main {
+export class Main implements IColdmindNode {
+	debugMode: boolean;
 	zappy: IZappyApp;
 
 	public run(): boolean {
 		try {
-			this.zappy = new ZapApp();
+			this.zappy = new ZapApp(this.debugMode);
 			return true;
 		} catch (err) {
 			Logger.logError("Run Failed ::", err);
@@ -48,7 +51,13 @@ export class Main {
 }
 
 let main = new Main();
+
+if (CliCommander.first("debug")) {
+	main.debugMode = true;
+}
+
 main.run();
+
 
 
 /*
