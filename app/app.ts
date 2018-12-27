@@ -23,9 +23,10 @@ import { CliCommander }           from "@cli/cli.commander";
 import { IZappyApp }              from "@app/zappy.app";
 import { SearchApiController }    from "@api/search-api.controller";
 import { ProductApiController }   from "@api/product-api.controller";
-import { IZynMiddleware }         from "@zynIgniter/zyn.middleware";
-import { ZynSession }             from "@zynIgniter/zyn.session";
-import { BasketApiController } from "@app/components/basket/basket-api.controller";
+import { IZynMiddleware }         from "@lib/zyn-express/zyn.middleware";
+import { ZynSession }             from "@lib/zyn-express/zyn.session";
+import { BasketApiController }    from "@app/components/basket/basket-api.controller";
+import { DataDumpApiController }  from '@api/data-dump-api.controller';
 
 export class ZapApp implements IZappyApp {
 	static developmentMode = false;
@@ -105,6 +106,7 @@ export class ZapApp implements IZappyApp {
 		controllers.push(new ProductApiController(this.debugMode));
 		controllers.push(new MinerApiController(this.debugMode));
 		controllers.push(new BasketApiController(this.debugMode));
+		controllers.push(new DataDumpApiController(this.debugMode));
 
 		//
 		// Pass the Route object to each controller to assign routes
@@ -143,7 +145,6 @@ export class ZapApp implements IZappyApp {
 		routes.use(cookieParser());
 		routes.use(bodyParser.json()); // support json encoded bodies
 		routes.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-
 
 		routes.use(function(req, res, next) {
 			res.header("Access-Control-Allow-Origin", "*");

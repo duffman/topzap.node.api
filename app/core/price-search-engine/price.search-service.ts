@@ -10,15 +10,27 @@ import * as querystring           from "querystring";
 import { Logger }                 from "@cli/cli.logger";
 import { Settings }               from "@app/zappy.app.settings";
 import { PHttpClient }            from "@putte/inet/phttp-client";
-
+import { IgniterClientSocket }    from '@igniter/coldmind/socket-io.client';
+import { IMessage }               from '@igniter/messaging/igniter-messages';
+import {MessageType} from '@igniter/messaging/message-types';
 
 export interface IPriceSearchService {
 	doDebugSearch(code: string): Promise<string>;
 	doSearch(code: string): Promise<string>;
+	doPriceSearch(code: string): Promise<IMessage>;
 }
 
 export class PriceSearchService implements IPriceSearchService {
-	constructor() {}
+	serviceClient: IgniterClientSocket;
+
+	constructor() {
+		this.serviceClient = new IgniterClientSocket("price");
+		this.serviceClient.connect();
+
+		this.serviceClient.onMessage((message: any) => {
+			console.log("New Message ::", message);
+		});
+	}
 
 	public doDebugSearch(code: string): Promise<string> {
 		Logger.logYellow("** DoDebugSearch ::");
@@ -28,6 +40,14 @@ export class PriceSearchService implements IPriceSearchService {
 		return new Promise((resolve, reject) => {
 			resolve(debugResult);
 		});
+	}
+
+	public doPriceSearch(code: string): Promise<IMessage> {
+		let messageData = {
+			code: code
+		};
+
+		return this.serviceClient.sendMessage(MessageType.GetBids, messageData);
 	}
 
 	public doSearch(code: string): Promise<string> {

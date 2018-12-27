@@ -7,7 +7,7 @@
  */
 
 import { Router }                 from "express";
-import { IZynMiddleware }         from "@zynIgniter/zyn.middleware";
+import { IZynMiddleware }         from "@zynIgniter/../../lib/zyn-express/zyn.middleware";
 
 /**
  * Core Controller

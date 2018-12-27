@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});const basket_collection_1=require('../app/zap-ts-models/basket-collection');let basketSess=new basket_collection_1.SessionBasket();console.log('typeof basketSess',typeof basketSess);let kalle1=basketSess instanceof basket_collection_1.SessionBasket;console.log('kalle1 ::',kalle1);

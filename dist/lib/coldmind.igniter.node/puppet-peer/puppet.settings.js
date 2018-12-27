@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});var PuppetSettings;(function(PuppetSettings){PuppetSettings.Local='localhost';PuppetSettings.PeerPort=8670;}(PuppetSettings=exports.PuppetSettings||(exports.PuppetSettings={})));

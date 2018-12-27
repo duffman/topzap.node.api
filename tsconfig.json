@@ -15,6 +15,7 @@
     "@api/*": ["./app/api/*"],
     "@core/*": ["./app/core/*"],
     "@cli/*": ["./app/cli/*"],
+    "@lib/*": ["./lib/*"],
     "@db/*": ["./database/*"],
     "@miner/*": ["./miner/*"],
     "@models/*": ["./models/*"],
@@ -22,6 +23,7 @@
     "@zynIgniter/*": ["./lib/zynaptic-igniter/*"],
     "@putteDb/*": ["./lib/putte-db/*"],
     "@mongo/*": ["./database/mongodb/*"],
+    "@igniter/*": ["./lib/coldmind-igniter/*"],
     "@utils/*": ["./lib/utils/*"],
     "@putte/*": ["./lib/putte-ts/*"],
     "@zaplib/*": ["./lib/topzap-utils-lib/*"]

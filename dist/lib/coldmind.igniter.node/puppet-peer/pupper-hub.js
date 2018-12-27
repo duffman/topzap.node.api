@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});const puppet_client_1=require('./puppet-client');const puppet_server_1=require('./puppet-server');class PupperPeer{constructor(){this.client=new puppet_client_1.PuppetClient();this.server=new puppet_server_1.PuppetServer();}}exports.PupperPeer=PupperPeer;

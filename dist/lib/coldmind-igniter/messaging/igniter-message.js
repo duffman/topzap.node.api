@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});class IgniterMessage{constructor(id,data=null){this.id=id;this.data=data;}}exports.IgniterMessage=IgniterMessage;

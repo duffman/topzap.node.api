@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});const uuid4=require('uuid/v4');const igniter_messages_1=require('./igniter-messages');class MessageFactory{static newIgniterMessage(messageType,data){let tag=uuid4();let message=new igniter_messages_1.IgniterMessage(messageType,data,tag);return message;}}exports.MessageFactory=MessageFactory;

@@ -16,3 +16,9 @@
 [submodule "app/zap-ts-models"]
 	path = app/zap-ts-models
 	url = https://github.com/duffman/topzap.ts-data-models.git
+[submodule "lib/igniter"]
+	path = lib/igniter
+	url = https://github.com/duffman/igniter.puppet-peer.git
+[submodule "lib/coldmind-igniter"]
+	path = lib/coldmind-igniter
+	url = https://github.com/duffman/igniter-node-lib.git

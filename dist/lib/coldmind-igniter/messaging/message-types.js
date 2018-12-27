@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});var MessageType;(function(MessageType){MessageType['Init']='init';MessageType['Action']='action';MessageType['GetBids']='getBids';MessageType['Ping']='ping';MessageType['Pong']='ping';MessageType['Bye']='bye';}(MessageType=exports.MessageType||(exports.MessageType={})));

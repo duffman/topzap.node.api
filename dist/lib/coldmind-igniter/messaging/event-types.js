@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});var MessageTypes;(function(MessageTypes){MessageTypes.Broadcast='broadcast';let Actions;(function(Actions){Actions.Connect='connect';}(Actions=MessageTypes.Actions||(MessageTypes.Actions={})));}(MessageTypes=exports.MessageTypes||(exports.MessageTypes={})));
