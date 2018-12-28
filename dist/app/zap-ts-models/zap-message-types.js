@@ -1,0 +1,1 @@
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});var ZapMessageType;(function(ZapMessageType){ZapMessageType['GetOffers']='geOffers';ZapMessageType['GetOffersInit']='geOffersInit';ZapMessageType['VendorOffer']='vendorOffer';ZapMessageType['GetOffersDone']='getOffersDone';}(ZapMessageType=exports.ZapMessageType||(exports.ZapMessageType={})));

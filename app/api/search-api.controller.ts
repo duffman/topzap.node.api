@@ -8,20 +8,15 @@ import { Logger }                 from "@cli/cli.logger";
 import { Express, Router}         from "express";
 import { Request, Response }      from 'express';
 import { Settings }               from "@app/zappy.app.settings";
-import { ProductDb }              from "@db/product-db";
 import { IApiController }         from "@api/api-controller";
-import { SearchResult }           from "@models/search-result";
 import { ApiControllerUtils }     from "@api/controller.utils";
 import { PriceSearchService }     from "@core/price-search-engine/price.search-service";
 import { CliCommander }           from "@cli/cli.commander";
-import { IVendorData }            from "@app/zap-ts-models/zap-offer.model";
 import { IZapOfferResult }        from "@app/zap-ts-models/zap-offer.model";
-import { ZapOfferResult}          from "@app/zap-ts-models/zap-offer.model";
 import { BasketApiController }    from "@app/components/basket/basket-api.controller";
 
 export class SearchApiController implements IApiController {
 	searchService: PriceSearchService;
-	basketController: BasketApiController;
 
 	constructor(public debugMode: boolean = false) {
 		this.searchService = new PriceSearchService();
@@ -86,22 +81,6 @@ export class SearchApiController implements IApiController {
 				Logger.logError("SearchApiController :: error ::", err);
 			})
 		});
-
-		routes.get('/code/:code', this.doDebugSearch.bind(this));
-	}
-
-	public doDebugSearch(req: Request, resp: Response) {
-		console.log("SEARCH FUCKING DEBUG!!!");
-		let code = "819338020068";
-
-		return new Promise((resolve, reject) => {
-			this.callSearchService(code).then((searchRes) => {
-				resolve(searchRes);
-			}).catch((err) => {
-				ApiControllerUtils.internalError(resp);
-				Logger.logError("SearchApiController :: error ::", err);
-			})
-		});
 	}
 
 	public callSearchService(code: string): Promise<IZapOfferResult> {
@@ -109,11 +88,10 @@ export class SearchApiController implements IApiController {
 		let url = Settings.PriceServiceApi.Endpoint;
 
 		return new Promise((resolve, reject) => {
-//			return this.searchService.doDebugSearch(code).then((searchResult) => {
 			return this.searchService.doPriceSearch(code).then((searchResult) => {
 				console.log("callSearchService :: doSearch ::", searchResult);
 
-//				let result = ZapOfferResult.toZapRes(searchResult);
+				// let result = ZapOfferResult.toZapRes(searchResult);
 
 				resolve(null);
 
@@ -127,5 +105,5 @@ export class SearchApiController implements IApiController {
 
 if (CliCommander.debug()) {
 	let app = new SearchApiController();
-	app.doDebugSearch(null, null);
+	//app.doDebugSearch(null, null);
 }

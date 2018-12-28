@@ -27,22 +27,29 @@ import { IZynMiddleware }         from "@lib/zyn-express/zyn.middleware";
 import { ZynSession }             from "@lib/zyn-express/zyn.session";
 import { BasketApiController }    from "@app/components/basket/basket-api.controller";
 import { DataDumpApiController }  from '@api/data-dump-api.controller';
+import {IgniterServerSocket} from '@igniter/coldmind/socket-io.server';
+import {IMessage} from '@igniter/messaging/igniter-messages';
+import * as net from 'net';
 
 export class ZapApp implements IZappyApp {
 	static developmentMode = false;
 
 	port = 8080;
+	wsPort = 8081;
 	debugMode: boolean = false;
 
 	apiControllers: IApiController[];
 	webApp: express.Application;
 	webAppMiddleware: IZynMiddleware[];
 	webRoutes: Router = Router();
+	sessionMiddleware: any;
+	wsServer: IgniterServerSocket;
 
 	db: DbManager;
 	productDb: ProductDb;
 
 	version: string = "1.6.5";
+
 	getAppVersion(): string {
 		return "ZapApp-Node-API/" + this.version;
 	}
@@ -53,11 +60,32 @@ export class ZapApp implements IZappyApp {
 
 	constructor(public includeMinerApi: boolean = false) {
 		this.apiControllers = new Array<IApiController>();
-		this.webApp = express();
-		this.webApp.use(this.webRoutes);
 
-		//this.webAppMiddleware = new Array<IZynMiddleware>();
-		//this.registerMiddleware();
+		this.webApp = express();
+
+		let http = require('http').Server(this.webApp);
+		let io = require('socket.io')(http);
+
+		this.wsServer = new IgniterServerSocket(false);
+		this.wsServer.attachSocketIO(io);
+
+		/*
+		let sessionSettings = {
+			secret: this.getSecret(),
+			genid: (req) => {
+				return "genuuid(); // use UUIDs for session IDs
+			},
+			//resave: false,
+			saveUninitialized: true,
+			cookie: { secure: false }
+		};
+
+		routes.use(session(sessionSettings));
+		*/
+
+		this.sessionMiddleware = session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }});
+
+		this.webApp.use(this.webRoutes);
 
 		this.db = new DbManager();
 		this.productDb = new ProductDb();
@@ -79,6 +107,58 @@ export class ZapApp implements IZappyApp {
 		this.init();
 	}
 
+	/**
+	 * Initialize The Express Web IOServer
+	 */
+	private init(): void {
+		const routes = this.webRoutes;
+
+		this.configureWebServer();
+		this.configureWebSocket();
+
+		this.initControllers();
+
+		routes.get("/test", function(req, res) {
+			console.log("TypeOf Session ::", typeof req.session);
+
+
+			if (req.session.basket) {
+				req.session.basket.itemCount++
+				res.setHeader('Content-Type', 'text/html')
+				res.write('<p>views: ' + req.session.basket.itemCount + '</p>')
+				res.write('<p>expires in: ' + (req.session.cookie.maxAge / 1000) + 's</p>')
+				res.end()
+			} else {
+				req.session.basket = {
+					type: "basket",
+					itemCount: 0
+				};
+				res.end('welcome to the session demo. refresh! :: ' + req.session.basket.itemCount);
+			}
+		});
+
+		routes.get('/minerstats', (req, res) => {
+			let stat = new MinerStatus();
+			stat.getProgressInfo().then((data) => {
+				console.log(data);
+				res.render('pages/minerstats', {progData: data});
+			});
+		});
+
+		// TODO: MOVE TO NGINX
+		// Get Static file
+		//
+		this.webApp.use(express.static('public'));
+
+		this.webApp.get('/res/:filename', (req, res) => {
+			let filename = req.params.code;
+			console.log("Get file", filename);
+		});
+
+		this.webApp.listen(this.port);
+		console.log(`Listening on localhost: ${this.port}`);
+	}
+
 	// Move to ZynApp
 	public registerMiddleware() {
 		const middleware = this.webAppMiddleware;
@@ -91,7 +171,6 @@ export class ZapApp implements IZappyApp {
 			zynMiddleware.initRoutes(routes);
 		}
 	}
-
 
 	/**
 	 * Create child controllers and let each controlller
@@ -117,6 +196,31 @@ export class ZapApp implements IZappyApp {
 		}
 	}
 
+	private configureWebSocket(): void {
+		let wss = this.wsServer;
+
+		wss.io.use((socket, next) => {
+			this.sessionMiddleware(socket.request, socket.request.res, next);
+		});
+
+		wss.onServerStarted((port) => {
+			Logger.logYellow("Websocket IOServer Started on port ::", port)
+		});
+
+		wss.onError((err) => {
+			Logger.logError("Websocket Error ::", err);
+		});
+
+		wss.onMessage((mess: IMessage) => {
+			Logger.logError("Websocket :: Message ::", mess);
+		});
+
+		wss.io.sockets.on("connection", (socket) => {
+			socket.request.session; // Now it's available from Socket.IO sockets too! Win!
+		});
+
+	}
+
 	private configureWebServer(): void {
 		let routes = this.webRoutes;
 
@@ -128,19 +232,7 @@ export class ZapApp implements IZappyApp {
 			return "uidSafe(18)";
 		}
 
-		let sessionSettings = {
-			secret: this.getSecret(),
-			genid: (req) => {
-				return genuuid(); // use UUIDs for session IDs
-			},
- 			//resave: false,
-			saveUninitialized: true,
-			cookie: { secure: false }
-		};
-
-		//routes.use(session(sessionSettings));
-
-		routes.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}));
+		routes.use(this.sessionMiddleware);
 
 		routes.use(cookieParser());
 		routes.use(bodyParser.json()); // support json encoded bodies
@@ -188,58 +280,6 @@ export class ZapApp implements IZappyApp {
 				});
 			});
 		}
-	}
-
-	/**
-	 * Initialize The Express Web Server
-	 */
-	private init(): void {
-		const routes = this.webRoutes;
-
-		this.configureWebServer();
-
-
-		this.initControllers();
-
-		routes.get("/test", function(req, res) {
-			console.log("TypeOf Session ::", typeof req.session);
-
-
-			if (req.session.basket) {
-				req.session.basket.itemCount++
-				res.setHeader('Content-Type', 'text/html')
-				res.write('<p>views: ' + req.session.basket.itemCount + '</p>')
-				res.write('<p>expires in: ' + (req.session.cookie.maxAge / 1000) + 's</p>')
-				res.end()
-			} else {
-				req.session.basket = {
-					type: "basket",
-					itemCount: 0
-				};
-				res.end('welcome to the session demo. refresh! :: ' + req.session.basket.itemCount);
-			}
-		});
-
-		routes.get('/minerstats', (req, res) => {
-			let stat = new MinerStatus();
-			stat.getProgressInfo().then((data) => {
-				console.log(data);
-				res.render('pages/minerstats', {progData: data});
-			});
-		});
-
-		// TODO: MOVE TO NGINX
-		// Get Static file
-		//
-		this.webApp.use(express.static('public'));
-
-		this.webApp.get('/res/:filename', (req, res) => {
-			let filename = req.params.code;
-			console.log("Get file", filename);
-		});
-
-		this.webApp.listen(this.port);
-		console.log(`Listening on localhost: ${this.port}`);
 	}
 }
 

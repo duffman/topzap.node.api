@@ -121,6 +121,9 @@ export class BasketApiController implements IApiController {
 	private getHighestBidder(offerData: IZapOfferResult): IVendorData {
 		let highVendor: IVendorData = null;
 
+		offerData.vendors = PVarUtils.isNullOrUndefined(offerData.vendors)
+			? new Array<IVendorData>() : offerData.vendors;
+
 		for (let i = 0; i < offerData.vendors.length; i++) {
 			let vendor = offerData.vendors[i];
 
@@ -428,7 +431,6 @@ export class BasketApiController implements IApiController {
 		// resp.setHeader('Content-Type', 'text/html')
 		resp.setHeader('Content-Type', 'application/json');
 		resp.end(JSON.stringify(basketResult));
-
 	}
 
 	/**

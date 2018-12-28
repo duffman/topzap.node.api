@@ -1,1 +1,0 @@
-'use strict';Object.defineProperty(exports,'__esModule',{value:true});class ZynRequest{constructor(req,resp,next){this.req=req;this.resp=resp;this.next=next;this.session=req.session;}}exports.ZynRequest=ZynRequest;

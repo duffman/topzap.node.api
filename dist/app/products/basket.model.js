@@ -1,1 +1,0 @@
-'use strict';Object.defineProperty(exports,'__esModule',{value:true});class BasketModel{constructor(vendorId){this.vendorId=vendorId;this.items=new Array();}}exports.BasketModel=BasketModel;

@@ -1,1 +1,0 @@
-'use strict';Object.defineProperty(exports,'__esModule',{value:true});class BasketAddResult{constructor(success=false,resultItem=null,basketData=null){this.success=success;this.resultItem=resultItem;this.basketData=basketData;}}exports.BasketAddResult=BasketAddResult;

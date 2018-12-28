@@ -12,7 +12,8 @@ import { Settings }               from "@app/zappy.app.settings";
 import { PHttpClient }            from "@putte/inet/phttp-client";
 import { IgniterClientSocket }    from '@igniter/coldmind/socket-io.client';
 import { IMessage }               from '@igniter/messaging/igniter-messages';
-import {MessageType} from '@igniter/messaging/message-types';
+import { MessageType }            from '@igniter/messaging/message-types';
+import {ZapMessageType} from '@zapModels/zap-message-types';
 
 export interface IPriceSearchService {
 	doDebugSearch(code: string): Promise<string>;
@@ -24,7 +25,7 @@ export class PriceSearchService implements IPriceSearchService {
 	serviceClient: IgniterClientSocket;
 
 	constructor() {
-		this.serviceClient = new IgniterClientSocket("price");
+		this.serviceClient = new IgniterClientSocket();
 		this.serviceClient.connect();
 
 		this.serviceClient.onMessage((message: any) => {
@@ -47,7 +48,7 @@ export class PriceSearchService implements IPriceSearchService {
 			code: code
 		};
 
-		return this.serviceClient.sendMessage(MessageType.GetBids, messageData);
+		return this.serviceClient.sendMessage(MessageType.Action, ZapMessageType.GetOffers, messageData);
 	}
 
 	public doSearch(code: string): Promise<string> {
@@ -61,39 +62,6 @@ export class PriceSearchService implements IPriceSearchService {
 			}).catch((err) => {
 				Logger.logGreen("PriceSearchService :: doSearch :: error ::", err);
 				reject(err);
-			});
-		});
-	}
-
-	public doSearch2(code: string, useProxy: boolean = false): Promise<any> {
-		let payload = {
-			code: code,
-			ext: false
-		};
-// "http://localhost:6562"
-		let options = {
-			uri: Settings.PriceServiceApi.Endpoint,
-			headers: {
-				'User-Agent': 'zapStorm/36.3',
-				'Content-Type': 'application/json',
-				'Accept': 'application/json',
-			}
-		};
-
-		let scope = this;
-
-		return new Promise((resolve, reject) => {
-			return request.post(Settings.PriceServiceApi.Endpoint, // <- (Nu mer vaken än i Visby) - testa att sikta den mot URLén
-				options, { payload }, (error: any, response: any, body: any) => {
-
-				if (!error && response.statusCode == 200) {
-					Logger.logGreen("Success", body);
-					resolve(body);
-				}
-				else {
-					Logger.logError("PostRequest :: Error", error);
-					reject(error);
-				}
 			});
 		});
 	}

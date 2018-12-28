@@ -1,1 +1,0 @@
-'use strict';Object.defineProperty(exports,'__esModule',{value:true});class ZynSession{initRoutes(routes){let scope=this;routes.use('/*',(req,resp,next)=>{next();});}}exports.ZynSession=ZynSession;

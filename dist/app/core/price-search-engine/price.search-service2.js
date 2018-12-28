@@ -1,1 +1,0 @@
-'use strict';Object.defineProperty(exports,'__esModule',{value:true});class PriceSearchService2{constructor(){}}exports.PriceSearchService2=PriceSearchService2;
