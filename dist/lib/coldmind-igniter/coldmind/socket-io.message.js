@@ -5,6 +5,6 @@
  * Proprietary and confidential
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-class ProductsController {
+class SocketIoMessage {
 }
-exports.ProductsController = ProductsController;
+exports.SocketIoMessage = SocketIoMessage;

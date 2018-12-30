@@ -11,6 +11,7 @@ import { ErrorRequestHandler }    from "express";
 import * as bodyParser            from "body-parser";
 import * as cookieParser          from "cookie-parser";
 import * as session               from "express-session";
+import * as cors                  from "cors";
 import * as uidSafe               from "uid-safe";
 import { DbManager }              from "@putteDb/database-manager";
 import { SearchResult }           from "@models/search-result";
@@ -27,9 +28,9 @@ import { IZynMiddleware }         from "@lib/zyn-express/zyn.middleware";
 import { ZynSession }             from "@lib/zyn-express/zyn.session";
 import { BasketApiController }    from "@app/components/basket/basket-api.controller";
 import { DataDumpApiController }  from '@api/data-dump-api.controller';
-import {IgniterServerSocket} from '@igniter/coldmind/socket-io.server';
-import {IMessage} from '@igniter/messaging/igniter-messages';
-import * as net from 'net';
+import { SocketServer }    from '@igniter/coldmind/socket-io.server';
+import { IMessage }               from '@igniter/messaging/igniter-messages';
+import {ZapMessageType} from '@zapModels/zap-message-types';
 
 export class ZapApp implements IZappyApp {
 	static developmentMode = false;
@@ -43,7 +44,7 @@ export class ZapApp implements IZappyApp {
 	webAppMiddleware: IZynMiddleware[];
 	webRoutes: Router = Router();
 	sessionMiddleware: any;
-	wsServer: IgniterServerSocket;
+	wsServer: SocketServer;
 
 	db: DbManager;
 	productDb: ProductDb;
@@ -58,63 +59,70 @@ export class ZapApp implements IZappyApp {
 		return "ZapApp-Node-API/WillyW0nka";
 	}
 
+	/*
+let sessionSettings = {
+	secret: this.getSecret(),
+	genid: (req) => {
+		return "genuuid(); // use UUIDs for session IDs
+	},
+	//resave: false,
+	saveUninitialized: true,
+	cookie: { secure: false }
+};
+
+routes.use(session(sessionSettings));
+*/
+
 	constructor(public includeMinerApi: boolean = false) {
 		this.apiControllers = new Array<IApiController>();
 
 		this.webApp = express();
-
-		let http = require('http').Server(this.webApp);
-		let io = require('socket.io')(http);
-
-		this.wsServer = new IgniterServerSocket(false);
-		this.wsServer.attachSocketIO(io);
-
-		/*
-		let sessionSettings = {
-			secret: this.getSecret(),
-			genid: (req) => {
-				return "genuuid(); // use UUIDs for session IDs
-			},
-			//resave: false,
-			saveUninitialized: true,
-			cookie: { secure: false }
-		};
-
-		routes.use(session(sessionSettings));
-		*/
-
 		this.sessionMiddleware = session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }});
 
+		cors({credentials: true, origin: true});
+		this.webApp.use(cors());
+
+		let http = require('http').Server(this.webApp);
+		let sio = require('socket.io')(http);
+
+		this.wsServer = new SocketServer(false);
+		this.wsServer.attachSocketIO(sio);
+
+		let sessionMiddleware = session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }});
+
+		sio.use(function(socket, next) {
+			sessionMiddleware(socket.request, socket.request.res, next);
+		});
+
+		this.webApp.use(sessionMiddleware);
+
+		this.wsServer.onMessage((message: IMessage) => {
+			console.log("WSSERVER :: Message ::", message.data);
+
+		});
+
 		this.webApp.use(this.webRoutes);
+
+		this.initControllers();
+		this.configureWebServer2();
+
+		http.listen(8080);
+
+
+		/*
 
 		this.db = new DbManager();
 		this.productDb = new ProductDb();
 
-		console.log(" ");
-		console.log(" ");
-
-		console.log(">> webApp.routes", this.webApp.routes);
-		console.log(">> TYPE :: webApp.routes", typeof this.webApp.routes);
-
-		console.log(" ");
-
-		console.log(">> webRoutes", this.webRoutes);
-		console.log(">> TYPE :: webRoutes.routes", typeof this.webRoutes);
-		console.log(" ");
-		console.log(" ");
-
-
-		this.init();
+		*/
+		//this.init();
 	}
 
-	/**
-	 * Initialize The Express Web IOServer
-	 */
 	private init(): void {
 		const routes = this.webRoutes;
 
 		this.configureWebServer();
-		this.configureWebSocket();
+		//this.configureWebSocket();
 
 		this.initControllers();
 
@@ -159,28 +167,14 @@ export class ZapApp implements IZappyApp {
 		console.log(`Listening on localhost: ${this.port}`);
 	}
 
-	// Move to ZynApp
-	public registerMiddleware() {
-		const middleware = this.webAppMiddleware;
-		const routes = this.webRoutes;
-
-		middleware.push(new ZynSession());
-
-		for (let index in middleware) {
-			let zynMiddleware = middleware[index];
-			zynMiddleware.initRoutes(routes);
-		}
-	}
-
-	/**
-	 * Create child controllers and let each controlller
-	 * add itself to the main Router
-	 */
 	private initControllers() {
 		const routes = this.webRoutes;
 		const controllers = this.apiControllers;
 
-		controllers.push(new SearchApiController(this.debugMode));
+		let searchApiControler = new SearchApiController(this.debugMode);
+		searchApiControler.attachWSS(this.wsServer);
+
+		controllers.push(searchApiControler);
 		controllers.push(new ServiceApiController(this.debugMode));
 		controllers.push(new ProductApiController(this.debugMode));
 		controllers.push(new MinerApiController(this.debugMode));
@@ -197,6 +191,7 @@ export class ZapApp implements IZappyApp {
 	}
 
 	private configureWebSocket(): void {
+		return;
 		let wss = this.wsServer;
 
 		wss.io.use((socket, next) => {
@@ -221,6 +216,24 @@ export class ZapApp implements IZappyApp {
 
 	}
 
+	private configureWebServer2(): void {
+		let routes = this.webRoutes;
+
+		routes.use(this.sessionMiddleware);
+
+		routes.use(cookieParser());
+		routes.use(bodyParser.json()); // support json encoded bodies
+		routes.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+
+		routes.use(function (err, req, res, next) {
+			res.status(err.status || 500);
+			res.render('error', {
+				message: "err.message",
+				error: {}
+			});
+		});
+	}
+
 	private configureWebServer(): void {
 		let routes = this.webRoutes;
 
@@ -239,8 +252,23 @@ export class ZapApp implements IZappyApp {
 		routes.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 		routes.use(function(req, res, next) {
-			res.header("Access-Control-Allow-Origin", "*");
+			let origin = req.headers['origin'] || req.headers['Origin'];
+
+			let or: string = origin.toString();
+
+			/*
+			console.log("ORIGIN ::", or);
+			res.header('Access-Control-Allow-Origin', or);
 			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+			res.header("Access-Control-Allow-Credentials", "true");
+			*/
+
+			/*
+			res.header('Access-Control-Allow-Origin', origin[0]);
+			//res.header("Access-Control-Allow-Origin", "http://localhost:4200");
+			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+			res.header("Access-Control-Allow-Credentials", "true");
+			*/
 			next();
 		});
 
@@ -251,8 +279,6 @@ export class ZapApp implements IZappyApp {
 				error: {}
 			});
 		});
-
-		//this.setErrorMiddleware();
 	}
 
 	private setErrorMiddleware(){

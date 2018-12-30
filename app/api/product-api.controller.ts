@@ -14,6 +14,7 @@ import { IProductData }           from '@zapModels/product.model';
 import { ProductDataResult }      from '@zapModels/product-data-result';
 import { IProductsController }    from '@app/components/product/products.controller';
 import { ProductsController }     from '@app/components/product/products.controller';
+import {ISocketServer} from '@igniter/coldmind/socket-io.server';
 
 export class ProductApiController implements IApiController {
 	controller: IProductsController;
@@ -34,6 +35,9 @@ export class ProductApiController implements IApiController {
 				reject(err);
 			});
 		});
+	}
+
+	public attachWSS(wss: ISocketServer): void {
 	}
 
 	public initRoutes(routes: Router) {

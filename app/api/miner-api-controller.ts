@@ -6,7 +6,7 @@
 
 import { Express, Router }        from "express";
 import { Request, Response }      from 'express';
-import { ApiControllerUtils }        from "@api/controller.utils";
+import { ApiControllerUtils }     from "@api/controller.utils";
 import { MinerDb}                 from "@miner/miner-db";
 import { IMinerWorkItem }         from "@miner/miner-session-model";
 import { MinerErrorLogEntry}      from "@miner/miner-session-model";
@@ -16,12 +16,16 @@ import { MinerSessionModel }      from "@miner/miner-session-model";
 import { IDbResult }              from "@putteDb/db-result";
 import { Logger }                 from "@cli/cli.logger";
 import { IApiController }         from "@api/api-controller";
+import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
 
 export class MinerApiController implements IApiController {
 	minerDb: MinerDb;
 
 	constructor(public debugMode: boolean = false) {
 		this.minerDb = new MinerDb();
+	}
+
+	public attachWSS(wss: ISocketServer): void {
 	}
 
 	public initRoutes(routes: Router) {

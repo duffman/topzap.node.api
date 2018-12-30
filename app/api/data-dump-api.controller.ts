@@ -8,12 +8,16 @@ import { Router }                 from "express";
 import { Request }                from "express";
 import { Response }               from "express";
 import { IApiController }         from '@api/api-controller';
+import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
 
 export class DataDumpApiController implements IApiController {
 	constructor(public debugMode: boolean = false) {
 	}
 
 	private doDataDump(req: Request, resp: Response): void {
+	}
+
+	public attachWSS(wss: ISocketServer): void {
 	}
 
 	public initRoutes(routes: Router): void {

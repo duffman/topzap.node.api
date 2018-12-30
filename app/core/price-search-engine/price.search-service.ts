@@ -13,15 +13,18 @@ import { PHttpClient }            from "@putte/inet/phttp-client";
 import { IgniterClientSocket }    from '@igniter/coldmind/socket-io.client';
 import { IMessage }               from '@igniter/messaging/igniter-messages';
 import { MessageType }            from '@igniter/messaging/message-types';
-import {ZapMessageType} from '@zapModels/zap-message-types';
+import { ZapMessageType }         from '@zapModels/zap-message-types';
+import {DbManager} from '@putteDb/database-manager';
+import {ProductDb} from '@db/product-db';
 
 export interface IPriceSearchService {
-	doDebugSearch(code: string): Promise<string>;
 	doSearch(code: string): Promise<string>;
 	doPriceSearch(code: string): Promise<IMessage>;
 }
 
 export class PriceSearchService implements IPriceSearchService {
+	db: DbManager;
+	productDb: ProductDb;
 	serviceClient: IgniterClientSocket;
 
 	constructor() {
@@ -33,22 +36,12 @@ export class PriceSearchService implements IPriceSearchService {
 		});
 	}
 
-	public doDebugSearch(code: string): Promise<string> {
-		Logger.logYellow("** DoDebugSearch ::");
-
-		const debugResult = '{"highOffer":0,"vendors":[{"vendorId":12,"accepted":true,"title":"Adventure Time: Pirates of the Enchiridion for Nintendo Switch","offer":"2.85","rawData":null},{"vendorId":11,"accepted":true,"title":"Adventure Time: Pirates of the","offer":"15","rawData":null},{"vendorId":15,"accepted":true,"title":"Adventure Time: Pirates of the Enchiridion for Nintendo Switch","offer":"0.05","rawData":null},{"vendorId":13,"accepted":true,"title":"Adventure Time: Pirates of the Enchiridion","offer":"0.88","rawData":null}]}';
-
-		return new Promise((resolve, reject) => {
-			resolve(debugResult);
-		});
-	}
-
-	public doPriceSearch(code: string): Promise<IMessage> {
+	public doPriceSearch(code: string, sessId: string = null): Promise<IMessage> {
 		let messageData = {
 			code: code
 		};
 
-		return this.serviceClient.sendMessage(MessageType.Action, ZapMessageType.GetOffers, messageData);
+		return this.serviceClient.sendAwaitMessage(MessageType.Action, ZapMessageType.GetOffers, messageData, sessId);
 	}
 
 	public doSearch(code: string): Promise<string> {

@@ -13,6 +13,7 @@ import { ZapResult }              from '@zapModels/zap-result';
 import { CliCommander }           from '@cli/cli.commander';
 import { ZynPostData }            from '@lib/zyn-express/zyn.post-data';
 import { ZynRemoteIp }            from '@lib/zyn-express/webserver/utils/zyn.remote-ip';
+import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
 
 export class ServiceApiController implements IApiController {
 	constructor(public debugMode: boolean = false) {}
@@ -65,7 +66,10 @@ export class ServiceApiController implements IApiController {
 		});
 	}
 
-	public initRoutes(routes: Router) {
+	public attachWSS(wss: ISocketServer): void {
+	}
+
+	public initRoutes(routes: Router): void {
 		let scope = this;
 
 		routes.post("/service/recaptcha", this.verifyCaptcha.bind(this));
