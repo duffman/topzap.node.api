@@ -18,7 +18,7 @@ import { SearchResult }           from "@models/search-result";
 import { Logger }                 from "@cli/cli.logger";
 import { MinerApiController }     from "@api/miner-api-controller";
 import { ProductDb }              from "@db/product-db";
-import { IApiController }         from "@api/api-controller";
+import {IApiController, IRestApiController, IWSApiController} from "@api/api-controller";
 import { ServiceApiController }   from "@api/service-api.controller";
 import { CliCommander }           from "@cli/cli.commander";
 import { IZappyApp }              from "@app/zappy.app";
@@ -31,6 +31,9 @@ import { DataDumpApiController }  from '@api/data-dump-api.controller';
 import { SocketServer }    from '@igniter/coldmind/socket-io.server';
 import { IMessage }               from '@igniter/messaging/igniter-messages';
 import {ZapMessageType} from '@zapModels/zap-message-types';
+import {BasketWsApiController} from '@components/basket/basket-ws-api.controller';
+import {ClientSocket, IClientSocket} from '@igniter/coldmind/socket-io.client';
+import {DataCacheController} from '@api/data-cache-controller';
 
 export class ZapApp implements IZappyApp {
 	static developmentMode = false;
@@ -39,12 +42,16 @@ export class ZapApp implements IZappyApp {
 	wsPort = 8081;
 	debugMode: boolean = false;
 
-	apiControllers: IApiController[];
+	restControllers: IRestApiController[];
+	wsControllers: IWSApiController[];
+
 	webApp: express.Application;
 	webAppMiddleware: IZynMiddleware[];
 	webRoutes: Router = Router();
 	sessionMiddleware: any;
+
 	wsServer: SocketServer;
+	serviceClient: ClientSocket;
 
 	db: DbManager;
 	productDb: ProductDb;
@@ -74,7 +81,8 @@ routes.use(session(sessionSettings));
 */
 
 	constructor(public includeMinerApi: boolean = false) {
-		this.apiControllers = new Array<IApiController>();
+		this.restControllers = new Array<IRestApiController>();
+		this.wsControllers = new Array<IWSApiController>();
 
 		this.webApp = express();
 		this.sessionMiddleware = session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }});
@@ -103,8 +111,19 @@ routes.use(session(sessionSettings));
 
 		this.webApp.use(this.webRoutes);
 
-		this.initControllers();
+
+		this.webApp.use(cookieParser());
+		this.webApp.use(bodyParser.json()); // support json encoded bodies
+		this.webApp.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+
+
+		this.serviceClient = new ClientSocket();
+		this.serviceClient.connect(null);
+
 		this.configureWebServer2();
+
+		this.initRestControllers();
+		this.initWsControllers();
 
 		http.listen(8080);
 
@@ -121,10 +140,9 @@ routes.use(session(sessionSettings));
 	private init(): void {
 		const routes = this.webRoutes;
 
-		this.configureWebServer();
+		//this.configureWebServer();
 		//this.configureWebSocket();
-
-		this.initControllers();
+		//this.initRestControllers();
 
 		routes.get("/test", function(req, res) {
 			console.log("TypeOf Session ::", typeof req.session);
@@ -163,18 +181,14 @@ routes.use(session(sessionSettings));
 			console.log("Get file", filename);
 		});
 
-		this.webApp.listen(this.port);
-		console.log(`Listening on localhost: ${this.port}`);
+		//this.webApp.listen(this.port);
+		//console.log(`Listening on localhost: ${this.port}`);
 	}
 
-	private initControllers() {
+	private initRestControllers() {
 		const routes = this.webRoutes;
-		const controllers = this.apiControllers;
+		const controllers = this.restControllers;
 
-		let searchApiControler = new SearchApiController(this.debugMode);
-		searchApiControler.attachWSS(this.wsServer);
-
-		controllers.push(searchApiControler);
 		controllers.push(new ServiceApiController(this.debugMode));
 		controllers.push(new ProductApiController(this.debugMode));
 		controllers.push(new MinerApiController(this.debugMode));
@@ -189,6 +203,25 @@ routes.use(session(sessionSettings));
 			controller.initRoutes(routes);
 		}
 	}
+
+	private initWsControllers() {
+		const controllers = this.wsControllers;
+
+		controllers.push(new SearchApiController(this.debugMode));
+		controllers.push(new BasketWsApiController(this.debugMode));
+		controllers.push(new DataCacheController(this.debugMode));
+
+		//
+		// Pass the WS Server and Service Client to each controller
+		//
+		for (let index in controllers) {
+			let controller = controllers[index];
+			controller.attachWSS(this.wsServer);
+			controller.attachServiceClient(this.serviceClient);
+		}
+	}
+
+
 
 	private configureWebSocket(): void {
 		return;
@@ -217,6 +250,15 @@ routes.use(session(sessionSettings));
 	}
 
 	private configureWebServer2(): void {
+		// set the view engine to ejs
+		this.webApp.set('view engine', 'ejs');
+
+/*
+		this.webApp.use(cookieParser());
+		this.webApp.use(bodyParser.json()); // support json encoded bodies
+		this.webApp.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+*/
+
 		let routes = this.webRoutes;
 
 		routes.use(this.sessionMiddleware);
@@ -227,10 +269,15 @@ routes.use(session(sessionSettings));
 
 		routes.use(function (err, req, res, next) {
 			res.status(err.status || 500);
-			res.render('error', {
-				message: "err.message",
-				error: {}
-			});
+
+			let data = {
+				"error": {
+					"message": "err.message",
+					"error": err
+				}
+			};
+
+			res.json(data);
 		});
 	}
 

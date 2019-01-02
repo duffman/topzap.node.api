@@ -6,7 +6,7 @@
 
 import { Express, Router }        from "express";
 import { Request, Response }      from "express";
-import { IApiController }         from "@api/api-controller";
+import { IRestApiController }     from "@api/api-controller";
 import { ProductDb }              from "@db/product-db";
 import { Logger }                 from "@cli/cli.logger";
 import { ZapErrorResult }         from '@zapModels/zap-error-result';
@@ -14,9 +14,8 @@ import { IProductData }           from '@zapModels/product.model';
 import { ProductDataResult }      from '@zapModels/product-data-result';
 import { IProductsController }    from '@app/components/product/products.controller';
 import { ProductsController }     from '@app/components/product/products.controller';
-import {ISocketServer} from '@igniter/coldmind/socket-io.server';
 
-export class ProductApiController implements IApiController {
+export class ProductApiController implements IRestApiController {
 	controller: IProductsController;
 	productDb: ProductDb;
 
@@ -35,9 +34,6 @@ export class ProductApiController implements IApiController {
 				reject(err);
 			});
 		});
-	}
-
-	public attachWSS(wss: ISocketServer): void {
 	}
 
 	public initRoutes(routes: Router) {

@@ -3,7 +3,8 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  */
-import { IApiController }         from "@api/api-controller";
+
+import {IRestApiController, IWSApiController} from "@api/api-controller";
 import { Request }                from "express";
 import { Response }               from "express";
 import { Router }                 from "express";
@@ -13,64 +14,36 @@ import { ZapResult }              from '@zapModels/zap-result';
 import { CliCommander }           from '@cli/cli.commander';
 import { ZynPostData }            from '@lib/zyn-express/zyn.post-data';
 import { ZynRemoteIp }            from '@lib/zyn-express/webserver/utils/zyn.remote-ip';
-import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
+import {ISocketServer} from '@igniter/coldmind/socket-io.server';
+import {ClientSocket} from '@igniter/coldmind/socket-io.client';
+import {GoogleCaptcha} from '@components/google-captcha';
 
-export class ServiceApiController implements IApiController {
+export class ServiceApiController implements IRestApiController {
 	constructor(public debugMode: boolean = false) {}
 
-	public verifyGCaptcha(gResponse: string, remoteIp: string = ''): Promise<IZapResult> {
-		let result = new ZapResult();
-		let zynPostRequest = new ZynPostData();
-
-		// Needs to differ for different routes??
-		let appSecret = "6LeYWn4UAAAAADNvTRK3twgps530_PnrO8ZuuaPM";
-
-		let payload = {
-			"form": {
-				"secret": appSecret,
-				"response": gResponse,
-				"remoteip": remoteIp
-			}
-		};
-
-		const googleReCaptchaUrl = "https://www.google.com/recaptcha/api/siteverify";
-
-		return new Promise((resolve, reject) => {
-			zynPostRequest.postData2(googleReCaptchaUrl, payload).then(res => {
-				console.log("res ::", res);
-				//let gRes = GCAPTCHAResult.toIGCAPTCHAResult(res);
-				result.success = res.success;
-				console.log("result ::", result);
-				console.log("result.success ::", result.success);
-
-				resolve(result);
-
-			}).catch(err => {
-				console.log("err ::", err);
-				result.error = err;
-				resolve(result);
-			});
-		});
-	}
-
 	private verifyCaptcha(req: Request, resp: Response): void {
+		let gCaptcha = new GoogleCaptcha();
+
 		let zynPostRequest = new ZynPostData();
 
-		console.log("BODY:: ", req.body);
+		console.log("verifyCaptcha :: BODY:: ", req.body);
 
 		let gResponse = req.body.resp;
 		let remoteIp = ZynRemoteIp.getRemoteIp(req);
 
-		this.verifyGCaptcha(gResponse, remoteIp).then(res => {
+		gCaptcha.verifyGCaptcha(gResponse, remoteIp).then(res => {
 			resp.json(res);
 		});
 	}
 
-	public attachWSS(wss: ISocketServer): void {
-	}
-
 	public initRoutes(routes: Router): void {
 		let scope = this;
+
+		routes.get("/test2", function(req, res) {
+			console.log("TypeOf Session ::", typeof req.session);
+			res.end('welcome to the session demo. refresh! :: ');
+		});
+
 
 		routes.post("/service/recaptcha", this.verifyCaptcha.bind(this));
 
@@ -93,9 +66,4 @@ export class ServiceApiController implements IApiController {
 		});
 
 	}
-}
-
-if (CliCommander.haveArgs()) {
-	let test = new ServiceApiController();
-	test.verifyGCaptcha("Kalle");
 }

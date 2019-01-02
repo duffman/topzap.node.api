@@ -14,18 +14,18 @@ import { ISessionPullResult }     from '@zapModels/session-pull-result';
 import { SessionPullResult }      from '@zapModels/session-pull-result';
 import { ApiRoutes }              from '@api/api-routes';
 import { IApiController }         from "@api/api-controller";
-import { IBasketItem }            from "@app/zap-ts-models/basket-item.model";
-import { BasketItem }             from "@app/zap-ts-models/basket-item.model";
-import { IBasketModel }           from "@app/zap-ts-models/basket.model";
-import { IVendorBasket }          from "@app/zap-ts-models/basket.model";
-import { VendorBasketModel }      from "@app/zap-ts-models/basket.model";
-import { IVendorOfferData }       from "@app/zap-ts-models/zap-offer.model";
-import { ZapOfferResult }         from "@app/zap-ts-models/zap-offer.model";
-import { IZapOfferResult }        from "@app/zap-ts-models/zap-offer.model";
-import { IBasketAddResult }       from "@app/zap-ts-models/basket-add-result";
-import { BasketAddResult }        from "@app/zap-ts-models/basket-add-result";
-import { ISessionBasket }         from "@app/zap-ts-models/basket-collection";
-import { SessionBasket }          from "@app/zap-ts-models/basket-collection";
+import { IBasketItem }            from "@app/models/zap-ts-models/basket-item.model";
+import { BasketItem }             from "@app/models/zap-ts-models/basket-item.model";
+import { IBasketModel }           from "@app/models/zap-ts-models/basket.model";
+import { IVendorBasket }          from "@app/models/zap-ts-models/basket.model";
+import { VendorBasketModel }      from "@app/models/zap-ts-models/basket.model";
+import { IVendorOfferData }       from "@app/models/zap-ts-models/zap-offer.model";
+import { ZapOfferResult }         from "@app/models/zap-ts-models/zap-offer.model";
+import { IZapOfferResult }        from "@app/models/zap-ts-models/zap-offer.model";
+import { IBasketAddResult }       from "@app/models/zap-ts-models/basket-add-result";
+import { BasketAddResult }        from "@app/models/zap-ts-models/basket-add-result";
+import { ISessionBasket }         from "@app/models/zap-ts-models/basket-collection";
+import { SessionBasket }          from "@app/models/zap-ts-models/basket-collection";
 import { ZapBasketData }          from "@zapModels/zap-basket.model";
 import { IPriceSearchService }    from "@core/price-search-engine/price.search-service";
 import { PriceSearchService }     from "@core/price-search-engine/price.search-service";
@@ -36,6 +36,10 @@ import { IProductData }           from '@zapModels/product.model';
 import { PRandNum }               from '@putte/prand-num';
 import { PVarUtils }              from '@putte/pvar-utils';
 import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IMessage }               from '@igniter/messaging/igniter-messages';
+import { MessageType }            from '@igniter/messaging/message-types';
+import { ZapMessageType }         from '@zapModels/zap-message-types';
+import { PHttpClient }            from '@putte/inet/phttp-client';
 
 export class BasketApiController implements IApiController {
 	productApiController: ProductApiController;
@@ -44,7 +48,7 @@ export class BasketApiController implements IApiController {
 	reqSession: any;
 
 	constructor(public debugMode: boolean = false) {
-		this.searchService = new PriceSearchService();
+		this.searchService = new PriceSearchService(null);
 	}
 
 	private echoDebug() {
@@ -326,9 +330,6 @@ export class BasketApiController implements IApiController {
 		});
 	}
 
-	private findItemByZid() {
-	}
-
 	private apiDeleteBasketItem(req: Request, resp: Response): void {
 		let data = req.body;
 		let code = data.code;
@@ -475,12 +476,6 @@ export class BasketApiController implements IApiController {
 	 */
 	private apiPullSession(req: Request, resp: Response): void {
 		resp.setHeader('Content-Type', 'application/json');
-		resp.end( JSON.stringify(
-			{
-				kalle: "kula"
-			}
-		));
-		return;
 
 		try {
 			let sessionBasket = this.getSessionBasket();
@@ -535,6 +530,11 @@ export class BasketApiController implements IApiController {
 	}
 
 	public attachWSS(wss: ISocketServer): void {
+		wss.onMessage((message: IMessage) => {
+			if (message.id === ZapMessageType.BasketGet) {
+
+			}
+		});
 	}
 
 	public initRoutes(routes: Router): void  {
@@ -546,16 +546,30 @@ export class BasketApiController implements IApiController {
 		routes.post(ApiRoutes.Basket.POST_BASKET_SESS_PULL, this.apiPullSession.bind(this));
 	}
 
+
+	public doSearch(code: string): Promise<string> {
+		let url = Settings.PriceServiceApi.Endpoint + "/" + code;
+
+		return new Promise((resolve, reject) => {
+			PHttpClient.getHttp(url).then((res) => {
+				Logger.logGreen("PriceSearchService :: doSearch :: success ::", res);
+				resolve(res);
+
+			}).catch((err) => {
+				Logger.logGreen("PriceSearchService :: doSearch :: error ::", err);
+				reject(err);
+			});
+		});
+	}
+
 	public callSearchService(code: string): Promise<IZapOfferResult> {
 		Logger.logGreen("callSearchService");
 
 		let url = Settings.PriceServiceApi.Endpoint;
 
 		return new Promise((resolve, reject) => {
-//			return this.searchService.doDebugSearch(code).then((searchResult) => {
-			return this.searchService.doPriceSearch(code).then((searchResult) => {
+			return this.doSearch(code).then((searchResult) => {
 				console.log("callSearchService :: doSearch ::", searchResult);
-
 
 				//let result = ZapOfferResult.toZapRes(searchResult);
 

@@ -5,25 +5,41 @@
  */
 
 import { DbManager }              from '@putteDb/database-manager';
-import {IVendorOfferData, VendorOfferData} from '@zapModels/zap-offer.model';
+import { IVendorOfferData }       from '@zapModels/zap-offer.model';
+import { VendorOfferData }        from '@zapModels/zap-offer.model';
+import { Logger }                 from '@cli/cli.logger';
 
 export class CachedOffersDb {
 	db: DbManager;
 
 	constructor() {
 		this.db = new DbManager();
-		this.init();
 	}
 
-	private init() {}
-
 	public cacheOffer(data: IVendorOfferData): void {
-		let sql = `INSERT INTO cached_offers ()
-			VALUES (
-			
-			)
-		`;
+		let sql = `INSERT INTO cached_offers (
+					id,
+					code,
+					vendor_id,
+					title,
+					offer,
+					cached_time
+				) VALUES (
+					NULL,
+					'${data.code}',
+					'${data.vendorId}',
+					'${data.title}',
+					'${data.offer}',
+					CURRENT_TIMESTAMP
+				)`;
 
+		console.log("SQL ::", sql);
+
+		this.db.dbQuery(sql).then(res => {
+			// This is a fire and forget thing, so we do not do anything...
+		}).catch(err => {
+			Logger.logError("CachedOffersDb :: cacheOffer :: err ::", err);
+		});
 	}
 
 	public getCachedOffers(code: string): Promise<IVendorOfferData[]> {

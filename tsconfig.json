@@ -2,6 +2,7 @@
   "compilerOptions": {
   "module": "commonjs",
   "target": "es6",
+  "strict": false,
   "noImplicitAny": false,
   "sourceMap": false,
   "experimentalDecorators": true,
@@ -18,8 +19,8 @@
     "@lib/*": ["./lib/*"],
     "@db/*": ["./database/*"],
     "@miner/*": ["./miner/*"],
-    "@models/*": ["./models/*"],
-    "@zapModels/*": ["./app/zap-ts-models/*"],
+    "@models/*": ["./app/models/*"],
+    "@zapModels/*": ["./app/models/zap-ts-models/*"],
     "@zynIgniter/*": ["./lib/zynaptic-igniter/*"],
     "@putteDb/*": ["./lib/putte-db/*"],
     "@mongo/*": ["./database/mongodb/*"],
