@@ -8,7 +8,7 @@ import { IWSApiController }       from '@api/api-controller';
 import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
 import { Router }                 from 'express';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
-import { IMessage }               from '@igniter/messaging/igniter-messages';
+import {IgniterMessage, IMessage} from '@igniter/messaging/igniter-messages';
 import { ZapMessageType }         from '@zapModels/zap-message-types';
 import { MessageType }            from '@igniter/messaging/message-types';
 import { BasketHandler }          from '@components/basket/basket.handler';
@@ -17,6 +17,9 @@ import { MessageFactory }         from '@igniter/messaging/message-factory';
 import { IBasketModel }           from '@zapModels/basket.model';
 import { ProductDb }              from '@db/product-db';
 import {SessionPullResult} from '@zapModels/messages/session-pull-result';
+import {GetOffersInit} from '@zapModels/messages/get-offers-messages';
+import {IVendorOfferData} from '@zapModels/zap-offer.model';
+import {CachedOffersDb} from '@db/cached-offers-db';
 
 export class BasketWsApiController implements IWSApiController {
 	productDb: ProductDb;
@@ -25,10 +28,13 @@ export class BasketWsApiController implements IWSApiController {
 	sessManager: SessionManager;
 	basketHandler: BasketHandler;
 
+	cachedOffersDb: CachedOffersDb;
+
 	constructor(public debugMode: boolean = false) {
 		this.productDb = new ProductDb();
 		this.sessManager = new SessionManager();
 		this.basketHandler = new BasketHandler(this.sessManager);
+		this.cachedOffersDb = new CachedOffersDb();
 	}
 
 	public attachWSS(wss: ISocketServer): void {
@@ -55,8 +61,58 @@ export class BasketWsApiController implements IWSApiController {
 		});
 	}
 
+	private emitGetOffersInit(sessId: string, data: any): void {
+		let mess = new IgniterMessage(MessageType.Action, ZapMessageType.GetOffersInit, data, sessId);
+		this.wss.sendToSession(sessId, mess);
+	}
+
+	private emitVendorOffer(sessId: string, data: any): void {
+		let mess = new IgniterMessage(MessageType.Action, ZapMessageType.VendorOffer, data, sessId);
+		this.wss.sendToSession(sessId, mess);
+	}
+
+	private emitOffersDone(sessId: string): void {
+		let mess = new IgniterMessage(MessageType.Action, ZapMessageType.GetOffersDone, {}, sessId);
+		this.wss.sendToSession(sessId, mess);
+	}
+
+	public doGetOffers(code: string, sessId: string): void {
+		let scope = this;
+		console.log("doGetOffers :: " + code + " :: " + sessId);
+
+		this.cachedOffersDb.getCachedOffers(code).then(res => {
+			return res;
+		}).catch(err => {
+			console.log("doGetOffers :: Catch ::", err);
+			return null;
+
+		}).then((cachedRes: Array<IVendorOfferData>) => {
+			console.log("Final THEN ::", cachedRes);
+
+			//
+			// Simulate Messages Sent using a regular lookup
+			//
+			if (cachedRes) {
+				scope.emitGetOffersInit(sessId, new GetOffersInit(cachedRes.length));
+				for (const entry of cachedRes) {
+					scope.onMessVendorOffer(sessId, entry);
+					//scope.emitVendorOffer(sessId, entry);
+				}
+				scope.emitOffersDone(sessId)
+
+				//
+				// Lookup offers through the price service
+				//
+			} else {
+				scope.emitGetOffersMessage(code, sessId); // Call price service
+			}
+		});
+	}
+
+
 	private onBasketAdd(sessId: string, mess: IMessage): void {
-		this.emitGetOffersMessage(mess.data.code, sessId);
+		this.doGetOffers(mess.data.code, sessId);
+		//this.emitGetOffersMessage(mess.data.code, sessId);
 		mess.ack();
 	}
 

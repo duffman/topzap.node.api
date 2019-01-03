@@ -5,6 +5,6 @@
  * Proprietary and confidential
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-class ProductsController {
+class BasketAddManager {
 }
-exports.ProductsController = ProductsController;
+exports.BasketAddManager = BasketAddManager;

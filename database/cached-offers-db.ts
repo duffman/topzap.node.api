@@ -64,16 +64,14 @@ export class CachedOffersDb {
 				for (let row of res.result.dataRows) {
 					let vendorId = row.getValAsNum("vendor_id");
 					let offer = row.getValAsStr("offer");
-					//let code = row.getValAsNum("code");
+					let code = row.getValAsStr("code");
 					let title = row.getValAsStr("title");
 
-					result.push(
-						new VendorOfferData(
-							vendorId,
-							offer,
-							title
-						)
-					);
+					let data = 	new VendorOfferData(vendorId, title, offer);
+					data.accepted = true;
+					data.code = code;
+
+					result.push(data);
 				}
 
 				resolve(result);
