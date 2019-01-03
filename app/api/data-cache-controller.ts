@@ -10,7 +10,7 @@ import { IWSApiController }       from '@api/api-controller';
 import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
 import { CachedOffersDb }         from '@db/cached-offers-db';
 import { IMessage }               from '@igniter/messaging/igniter-messages';
-import {ZapMessageType} from '@zapModels/zap-message-types';
+import { ZapMessageType }         from '@zapModels/zap-message-types';
 
 export class DataCacheController  implements IWSApiController {
 	public initRoutes(routes: any): void {

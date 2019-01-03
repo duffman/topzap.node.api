@@ -3,7 +3,7 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  */
-import {ISessionBasket, SessionBasket} from '@zapModels/basket-collection';
+import {ISessionBasket, SessionBasket} from '@zapModels/session-basket';
 
 export class SessionEntry {
 	constructor(public id: string,

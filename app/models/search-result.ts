@@ -7,7 +7,7 @@
 
 import { VendorList} from "@models/vendor-list";
 import { ProductBidList } from "@models/product-bid-list";
-import { VendorModel } from "@models/vendor-model";
+import { VendorModel } from "@zapModels/vendor-model";
 import { ProductBidModel } from "@models/product-bid-model";
 import {IProductData, ProductData} from '@zapModels/product.model';
 

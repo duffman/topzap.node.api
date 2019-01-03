@@ -25,7 +25,6 @@ export class CaptchaWsApiController implements IWSApiController {
 
 	private onServiceMessage(mess: IMessage): void {
 		if (mess.id === ZapMessageType.GCaptchaVerify) {
-
 		}
 	}
 

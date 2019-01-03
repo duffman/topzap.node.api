@@ -7,9 +7,13 @@ import {BasketItem, IBasketItem} from '@zapModels/basket-item.model';
 import {IBasketModel, IVendorBasket, VendorBasketModel} from '@zapModels/basket.model';
 import {BasketAddResult, IBasketAddResult} from '@zapModels/basket-add-result';
 import {IVendorOfferData, IZapOfferResult} from '@zapModels/zap-offer.model';
-import {ISessionBasket, SessionBasket} from '@zapModels/basket-collection';
+import {ISessionBasket, SessionBasket} from '@zapModels/session-basket';
 import {SessionManager} from '@components/session-manager';
 import {PRandNum} from '@putte/prand-num';
+import {ProductDb} from '@db/product-db';
+import {BarcodeParser} from '@zaplib/barcode-parser';
+import {IProductData} from '@zapModels/product.model';
+import {IVendorModel} from '@zapModels/vendor-model';
 
 export class BasketHandler {
 	constructor(public sessManager: SessionManager) {}
@@ -104,10 +108,114 @@ export class BasketHandler {
 		return bestBaset;
 	}
 
+	public extendSessionBasket(data: ISessionBasket): Promise<ISessionBasket> {
+		let prodDb = new ProductDb();
+
+		return new Promise((resolve, reject) => {
+			prodDb.getProducts(['0819338020068', '0887195000424']).then(res => {
+
+			}).catch(err => {
+				console.log("extendSessionBasket :: err ::", err);
+			});
+		});
+	}
+
+	/**
+	 * Extract all barcodes from the session basket
+	 * @param {ISessionBasket} sessionBasket
+	 * @returns {string[]}
+	 */
+	public getBasketCodes(sessionBasket: ISessionBasket): string[] {
+		let result = new Array<string>();
+
+		function addBarcode(code: string): void {
+			code = BarcodeParser.prepEan13Code(code);
+
+			if (result.indexOf(code) === -1) {
+				result.push(code);
+			}
+		}
+
+		for (const vendorBasket of sessionBasket.data) {
+			for (const item of vendorBasket.items) {
+				addBarcode(item.code);
+			}
+		}
+
+		return result;
+	}
+
 	public getFullBasket(sessId: string): ISessionBasket {
 		let sessBasket = this.getSessionBasket(sessId);
 		console.log("getFullBasket :: sessBasket ::", sessBasket);
 		return sessBasket;
+	}
+
+	public sortSessionBasket(sessionBasket: ISessionBasket): ISessionBasket {
+		for (const basket of sessionBasket.data) {
+			basket.totalValue = this.getBasketTotal(basket);
+		}
+
+		sessionBasket.data = sessionBasket.data.sort((x, y) => {
+			if (x.totalValue > y.totalValue) {
+				return -1;
+			}
+			if (x.totalValue < y.totalValue) {
+				return 1;
+			}
+			return 0;
+		});
+
+		return sessionBasket;
+	}
+
+	public getExtSessionBasket(sessId: string): Promise<ISessionBasket> {
+		let scope = this;
+		let sessBasket = this.getFullBasket(sessId);
+		let prodDb = new ProductDb();
+		let codes = this.getBasketCodes(sessBasket);
+
+		function getProducts(): Promise<IProductData[]> {
+			return new Promise((resolve, reject) => {
+				let codes = scope.getBasketCodes(sessBasket);
+				return prodDb.getProducts(codes).then(res => {
+					resolve(res);
+				}).catch(err => {
+					console.log("getExtSessionBasket :: err ::", err);
+					reject(err);
+				});
+			});
+		}
+
+		function getVendors(): Promise<IVendorModel[]> {
+			return new Promise((resolve, reject) => {
+				return prodDb.getVendors().then(res => {
+					resolve(res)
+				}).catch(err => {
+					console.log("getExtSessionBasket :: err ::", err)
+				});
+			});
+		}
+
+		async function getSessionBasket(): Promise<void> {
+			try {
+				let prodData = await getProducts();
+				sessBasket.productData = prodData;
+				let vendorData = await getVendors();
+				sessBasket.vendorData = vendorData;
+
+				sessBasket = scope.sortSessionBasket(sessBasket);
+
+			} catch (err) {
+				console.log("getExtSessionBasket :: getSessionBasket ::", err)
+			}
+		}
+
+		return new Promise((resolve, reject) => {
+			getSessionBasket().then(() => {
+				resolve(sessBasket);
+			});
+		});
 	}
 
 	public showBasket(sessId: string): void {

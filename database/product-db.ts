@@ -7,9 +7,8 @@
 import { DbManager }              from "@putteDb/database-manager";
 import { SQLTableDataRow }        from "@putteDb/sql-table-data-row";
 import { Logger }                 from "@cli/cli.logger";
-import { VendorModel }            from "@models/vendor-model";
-import { ProductBidModel }        from "@models/product-bid-model";
-import { SearchResult }           from "@models/search-result";
+import { IVendorModel }           from "@zapModels/vendor-model";
+import { VendorModel}             from "@zapModels/vendor-model";
 import { PlatformTypeParser }     from "@utils/platform-type-parser"
 import { PStrUtils }              from "@putte/pstr-utils";
 import { CliCommander }           from "@cli/cli.commander";
@@ -92,11 +91,48 @@ export class ProductDb {
 		});
 	}
 
+
+	public getProducts(codes: string[]): Promise<IProductData[]> {
+		let scope = this;
+		let result = new Array<IProductData>();
+
+		function getProductPromise(code: string): Promise<IProductData> {
+			return new Promise((resolve, reject) => {
+				scope.getProduct(code).then(res => {
+					result.push(res);
+					resolve(res);
+
+				}).catch(err => {
+					console.log("getProducts :: Error getting product ::", err);
+					reject(err);
+				});
+			});
+		}
+
+		return new Promise((resolve, reject) => {
+			let promises = Array<Promise<IProductData>>();
+
+			for (const code of codes) {
+				promises.push(getProductPromise(code));
+			}
+
+			Promise.all(
+				promises
+			).catch((err) => {
+				console.log("getProducts :: err ::", err);
+				reject(err);
+			}).then(() => {
+				Logger.logYellow("Promises Done");
+				resolve(result);
+			});
+		});
+	}
+
 	//
 	// Get Full Vendor List
 	//
-	private getVendors(): Promise<Array<VendorModel>> {
-		let result = new Array<VendorModel>();
+	public getVendors(): Promise<Array<IVendorModel>> {
+		let result = new Array<IVendorModel>();
 		let sql = `SELECT * FROM product_vendors`;
 
 		return new Promise((resolve, reject) => {
@@ -124,103 +160,6 @@ export class ProductDb {
 				Logger.logError("Error Gettings Vendors", error);
 				reject(error);
 			});
-		});
-	}
-
-	//
-	// Get Stored (mined) Bids
-	//
-	private obsolete_getBidList(barcode: string): Promise<Array<ProductBidModel>> {
-		let result = new Array<ProductBidModel>();
-		let sql = `SELECT * FROM product_bid WHERE barcode='${barcode}'`;
-
-		return new Promise((resolve, reject) => {
-			return this.db.dbQuery(sql).then((dbRes) => {
-				for (let i = 0; i < dbRes.result.rowCount(); i++) {
-					let dbRow = dbRes.result.dataRows[i];
-
-					let model = new ProductBidModel(
-						dbRow.getValAsStr("id"),
-						dbRow.getValAsStr("vendor_id"),
-						dbRow.getValAsStr("product_id"),
-						dbRow.getValAsStr("barcode"),
-						dbRow.getValAsStr("buy_price"),
-						dbRow.getValAsStr("sell_price")
-					);
-
-					result.push(model);
-				}
-
-				resolve(result);
-
-			}).catch((error) => {
-				Logger.logError("Error Gettings Vendors", error);
-				reject(error);
-			});
-		});
-	}
-
-	/**
-	 *
-	 * @param {string} barcode
-	 * @param {boolean} fullResult
-	 * @param {boolean} extendedProdData
-	 * @param {boolean} debug
-	 * @returns {Promise<SearchResult>}
-	 */
-	public obsolete_getProductOffers(barcode: string,
-							includeVendors: boolean,
-							extendedProdData: boolean,
-							debug: boolean = false): Promise<SearchResult> {
-		let scope = this;
-		let result = new SearchResult();
-
-		function getProductInfo(): Promise<IProductData> {
-			return this.getProduct(barcode, extendedProdData, debug);
-		}
-
-//		getBidList(barcode: string): Promise<Array<ProductBidModel>>
-
-		function getVendors(): Promise<VendorModel[]> {
-			if (includeVendors) {
-				return this.getVendors;
-			} else {
-
-			}
-		}
-
-		async function execute(): Promise<void> {
-			let product = await scope.getProduct(barcode, extendedProdData, debug);
-		}
-
-		///
-		/// Compile the final search result
-		///
-		return new Promise((resolve, reject) => {
-			return execute().then(() => {
-				resolve(result)
-			}).catch((err) => {
-				reject(err);
-			});
-
-			/*
-
-			return this.getProduct(barcode, extendedProdData, debugMode).then((product) => {
-				result.setProduct(product);
-
-
-
-			}).then((vendorArray) => {
-				result.vendors = vendorArray;
-
-				return this.getBidList(barcode).then((bids) => {
-					return bids;
-				});
-			}).then((bidsArray) => {
-				result.bids = bidsArray; //setBidList(bidsList);
-
-				resolve(result);
-			});*/
 		});
 	}
 }

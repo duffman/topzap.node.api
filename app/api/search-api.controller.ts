@@ -9,8 +9,8 @@ import { Settings }               from "@app/zappy.app.settings";
 import { IWSApiController }       from "@api/api-controller";
 import { PriceSearchService }     from "@core/price-search-engine/price.search-service";
 import { CliCommander }           from "@cli/cli.commander";
-import { IVendorOfferData }       from "@app/models/zap-ts-models/zap-offer.model";
-import { IZapOfferResult }        from "@app/models/zap-ts-models/zap-offer.model";
+import { IVendorOfferData }       from "@zapModels/zap-offer.model";
+import { IZapOfferResult }        from "@zapModels/zap-offer.model";
 import { SocketServer }           from '@igniter/coldmind/socket-io.server';
 import { IMessage }               from '@igniter/messaging/igniter-messages';
 import { IgniterMessage }         from '@igniter/messaging/igniter-messages';
@@ -48,26 +48,6 @@ export class SearchApiController implements IWSApiController {
 		this.serviceClient.onMessage(this.onServiceMessage.bind(this));
 	}
 
-	/**
-	 * New Message from Search Service
-	 * @param {IMessage} mess
-	 */
-	private onServiceMessage(mess: IMessage): void {
-		let scope = this;
-
-		if (mess.id === ZapMessageType.GetOffersInit) {
-			scope.emitGetOffersInit(mess.tag, mess.data);
-		}
-
-		if (mess.id === ZapMessageType.VendorOffer) {
-			scope.emitVendorOffer(mess.tag, mess.data);
-		}
-
-		if (mess.id === ZapMessageType.GetOffersDone) {
-			scope.emitOffersDone(mess.tag);
-		}
-	}
-
 	/*****
 	 *
 	 *  Emit Messages To User Session
@@ -86,28 +66,6 @@ export class SearchApiController implements IWSApiController {
 	private emitOffersDone(sessId: string): void {
 		let mess = new IgniterMessage(MessageType.Action, ZapMessageType.GetOffersDone, {}, sessId);
 		this.wss.sendToSession(sessId, mess);
-	}
-
-	/**
-	 * New Message from a User Session/Device
-	 * @param {IMessage} mess
-	 */
-	private onUserMessage(mess: IMessage): void {
-		let scope = this;
-
-		let sessId =  mess.socket.request.sessionID;
-
-		if (this.debugMode) {
-			Logger.logYellow("WSSERVER :: Message ::", mess.data);
-			Logger.logYellow("WSSERVER :: Session ID ::", sessId);
-		}
-
-		if (mess.id === ZapMessageType.GetOffers) {
-			let code = mess.data.code;
-			if (this.debugMode) Logger.logYellow("GET OFFERS :: CODE ::", code);
-			this.doGetOffers(code, sessId);
-			mess.ack();
-		}
 	}
 
 	public doGetOffers(code: string, sessId: string): void {
@@ -147,10 +105,53 @@ export class SearchApiController implements IWSApiController {
 		this.wss.onMessage(this.onUserMessage.bind(this));
 	}
 
+	/**
+	 * New Message from a User Session/Device
+	 * @param {IMessage} mess
+	 */
+	private onUserMessage(mess: IMessage): void {
+		let scope = this;
+
+		let sessId =  mess.socket.request.sessionID;
+
+		if (this.debugMode) {
+			Logger.logYellow("WSSERVER :: Message ::", mess.data);
+			Logger.logYellow("WSSERVER :: Session ID ::", sessId);
+		}
+
+		if (mess.id === ZapMessageType.GetOffers) {
+			let code = mess.data.code;
+			if (this.debugMode) Logger.logYellow("GET OFFERS :: CODE ::", code);
+			this.doGetOffers(code, sessId);
+			mess.ack();
+		}
+	}
+
 	public attachServiceClient(client: ClientSocket): void {
 		this.serviceClient = client;
 		this.serviceClient.onMessage(this.onServiceMessage.bind(this));
 	}
+
+	/**
+	 * New Message from Search Service
+	 * @param {IMessage} mess
+	 */
+	private onServiceMessage(mess: IMessage): void {
+		let scope = this;
+
+		if (mess.id === ZapMessageType.GetOffersInit) {
+			scope.emitGetOffersInit(mess.tag, mess.data);
+		}
+
+		if (mess.id === ZapMessageType.VendorOffer) {
+			scope.emitVendorOffer(mess.tag, mess.data);
+		}
+
+		if (mess.id === ZapMessageType.GetOffersDone) {
+			scope.emitOffersDone(mess.tag);
+		}
+	}
+
 	/*
 	public initRoutes(routes: Router): void {
 		let scope = this;

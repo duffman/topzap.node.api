@@ -3,7 +3,7 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  */
-import { ISessionBasket, SessionBasket } from '../app/models/zap-ts-models/basket-collection';
+import { ISessionBasket, SessionBasket } from '../app/zap-ts-models/session-basket';
 
 let basketSess = new SessionBasket();
 

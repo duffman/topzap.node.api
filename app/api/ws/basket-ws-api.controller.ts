@@ -4,26 +4,29 @@
  * Proprietary and confidential
  */
 
-import {IApiController, IWSApiController} from '@api/api-controller';
+import { IWSApiController }       from '@api/api-controller';
 import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
-import { SocketServer}            from '@igniter/coldmind/socket-io.server';
 import { Router }                 from 'express';
-import { ClientSocket }    from '@igniter/coldmind/socket-io.client';
+import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { IMessage }               from '@igniter/messaging/igniter-messages';
 import { ZapMessageType }         from '@zapModels/zap-message-types';
 import { MessageType }            from '@igniter/messaging/message-types';
-import {BasketHandler} from '@components/basket/basket.handler';
-import {SessionManager} from '@components/session-manager';
-import {MessageFactory} from '@igniter/messaging/message-factory';
-import {IBasketModel} from '@zapModels/basket.model';
+import { BasketHandler }          from '@components/basket/basket.handler';
+import { SessionManager }         from '@components/session-manager';
+import { MessageFactory }         from '@igniter/messaging/message-factory';
+import { IBasketModel }           from '@zapModels/basket.model';
+import { ProductDb }              from '@db/product-db';
+import {SessionPullResult} from '@zapModels/messages/session-pull-result';
 
 export class BasketWsApiController implements IWSApiController {
+	productDb: ProductDb;
 	wss: ISocketServer;
 	serviceClient: ClientSocket;
 	sessManager: SessionManager;
 	basketHandler: BasketHandler;
 
 	constructor(public debugMode: boolean = false) {
+		this.productDb = new ProductDb();
 		this.sessManager = new SessionManager();
 		this.basketHandler = new BasketHandler(this.sessManager);
 	}
@@ -35,18 +38,26 @@ export class BasketWsApiController implements IWSApiController {
 			let sessId =  mess.socket.request.sessionID;
 
 			if (mess.id === ZapMessageType.BasketPull) {
-				this.onBasketPull(sessId)
+				this.onBasketPull(sessId, mess);
 			}
 
 			if (mess.id === ZapMessageType.BasketGet) {
-				this.onBasketGet(sessId)
+				this.onBasketGet(sessId);
+			}
+
+			if (mess.id === ZapMessageType.BasketRem) {
+				this.onBasketRem(sessId, mess.data);
 			}
 
 			if (mess.id === ZapMessageType.BasketAdd) {
-				this.emitGetOffersMessage(mess.data.code, sessId);
-				mess.ack();
+				this.onBasketAdd(sessId, mess);
 			}
 		});
+	}
+
+	private onBasketAdd(sessId: string, mess: IMessage): void {
+		this.emitGetOffersMessage(mess.data.code, sessId);
+		mess.ack();
 	}
 
 	public attachServiceClient(client: ClientSocket): void {
@@ -73,20 +84,25 @@ export class BasketWsApiController implements IWSApiController {
 	private onBasketGet(sessId: string): void {
 		console.log("onBasketGet");
 		let bestBasket: IBasketModel = this.basketHandler.getBestBasket(sessId);
+		console.log("onBasketGet :: bestBasket");
 		let message = MessageFactory.newIgniterMessage(MessageType.Action, ZapMessageType.BasketGet, bestBasket);
 		this.wss.sendToSession(sessId, message);
 	}
 
-	private onBasketPull(sessId: string): void {
-		let vendorBaskets = this.basketHandler.getFullBasket(sessId);
+	private onBasketRem(sessId: string, data: any): void {
+	}
 
-		let message = MessageFactory.newIgniterMessage(MessageType.Action, ZapMessageType.BasketPull, vendorBaskets);
-		this.wss.sendToSession(sessId, message);
+	private onBasketPull(sessId: string, mess: IMessage): void {
+		this.basketHandler.getExtSessionBasket(sessId).then(result => {
+			let message = MessageFactory.newIgniterMessage(MessageType.Action, ZapMessageType.BasketPull, result);
+			this.wss.sendToSession(sessId, message);
+		}).catch(err => {
+			mess.error(err);
+		});
 	}
 
 	private onMessOffersInit(sessId: string): void {
 		console.log("BasketWsApiController :: onMessOffersInit ::", sessId);
-
 	}
 
 	private onMessVendorOffer(sessId: string, data: any): void {
@@ -102,9 +118,6 @@ export class BasketWsApiController implements IWSApiController {
 
 	private onMessOffersDone(sessId: string): void {
 		console.log("BasketWsApiController :: onMessOffersDone ::", sessId);
-	}
-
-	public basketAdd(): void {
 	}
 
 	/**
