@@ -7,19 +7,22 @@
 import { IWSApiController }       from '@api/api-controller';
 import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
 import { Router }                 from 'express';
+import { Logger }                 from '@cli/cli.logger';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
-import {IgniterMessage, IMessage} from '@igniter/messaging/igniter-messages';
-import { ZapMessageType }         from '@zapModels/zap-message-types';
+import { IMessage }               from '@igniter/messaging/igniter-messages';
+import { IgniterMessage }         from '@igniter/messaging/igniter-messages';
+import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { MessageType }            from '@igniter/messaging/message-types';
 import { BasketHandler }          from '@components/basket/basket.handler';
 import { SessionManager }         from '@components/session-manager';
 import { MessageFactory }         from '@igniter/messaging/message-factory';
 import { IBasketModel }           from '@zapModels/basket.model';
 import { ProductDb }              from '@db/product-db';
-import {SessionPullResult} from '@zapModels/messages/session-pull-result';
-import {GetOffersInit} from '@zapModels/messages/get-offers-messages';
-import {IVendorOfferData} from '@zapModels/zap-offer.model';
-import {CachedOffersDb} from '@db/cached-offers-db';
+import { GetOffersInit }          from '@zapModels/messages/get-offers-messages';
+import { IVendorOfferData }       from '@zapModels/zap-offer.model';
+import { CachedOffersDb }         from '@db/cached-offers-db';
+import {Settings} from '@app/zappy.app.settings';
+import {PStrUtils} from '@putte/pstr-utils';
 
 export class BasketWsApiController implements IWSApiController {
 	productDb: ProductDb;
@@ -76,19 +79,23 @@ export class BasketWsApiController implements IWSApiController {
 		this.wss.sendToSession(sessId, mess);
 	}
 
-	public doGetOffers(code: string, sessId: string): void {
+	/**
+	 * Attempt to get cached offers
+	 * @param {string} code
+	 * @param {string} sessId
+	 * @param {boolean} fallbalOnSearch
+	 */
+	private getCachedOffers(code: string, sessId: string, fallbalOnSearch: boolean = true): void {
 		let scope = this;
 		console.log("doGetOffers :: " + code + " :: " + sessId);
 
 		this.cachedOffersDb.getCachedOffers(code).then(res => {
 			return res;
 		}).catch(err => {
-			console.log("doGetOffers :: Catch ::", err);
+			console.log("BasketWsApiController :: doGetOffers :: Catch ::", err);
 			return null;
 
 		}).then((cachedRes: Array<IVendorOfferData>) => {
-			console.log("Final THEN ::", cachedRes);
-
 			//
 			// Simulate Messages Sent using a regular lookup
 			//
@@ -103,15 +110,30 @@ export class BasketWsApiController implements IWSApiController {
 				//
 				// Lookup offers through the price service
 				//
-			} else {
+			} else if (fallbalOnSearch) {
 				scope.emitGetOffersMessage(code, sessId); // Call price service
 			}
 		});
 	}
 
+	public doGetOffers(sessId: string, mess: IMessage): void {
+		let code = mess.data.code;
+
+		if (!PStrUtils.isNumeric(code)) {
+			Logger.logDebugErr("BasketWsApiController :: doGetOffers ::", code);
+			this.wss.sendError(sessId, ZapMessageType.ErrInvalidCode, {}, mess.tag);
+			return;
+		}
+
+		if (Settings.Caching.UseCachedOffers) {
+			this.getCachedOffers(code, sessId);
+		} else {
+			this.emitGetOffersMessage(code, sessId); // Call price service
+		}
+	}
 
 	private onBasketAdd(sessId: string, mess: IMessage): void {
-		this.doGetOffers(mess.data.code, sessId);
+		this.doGetOffers(sessId, mess);
 		//this.emitGetOffersMessage(mess.data.code, sessId);
 		mess.ack();
 	}
@@ -119,22 +141,6 @@ export class BasketWsApiController implements IWSApiController {
 	public attachServiceClient(client: ClientSocket): void {
 		this.serviceClient = client;
 		this.serviceClient.onMessage(this.onServiceMessage.bind(this));
-	}
-
-	private onServiceMessage(mess: IMessage): void {
-		let scope = this;
-
-		if (mess.id === ZapMessageType.GetOffersInit) {
-			this.onMessOffersInit(mess.tag)
-		}
-
-		if (mess.id === ZapMessageType.VendorOffer) {
-			this.onMessVendorOffer(mess.tag, mess.data);
-		}
-
-		if (mess.id === ZapMessageType.GetOffersDone) {
-			this.onMessOffersDone(mess.tag);
-		}
 	}
 
 	private onBasketGet(sessId: string): void {
@@ -146,6 +152,8 @@ export class BasketWsApiController implements IWSApiController {
 	}
 
 	private onBasketRem(sessId: string, data: any): void {
+		let code = data.code;
+		Logger.logYellow("REMOVE FROM BASKET :: CODE ::", code);
 	}
 
 	private onBasketPull(sessId: string, mess: IMessage): void {
@@ -174,6 +182,22 @@ export class BasketWsApiController implements IWSApiController {
 
 	private onMessOffersDone(sessId: string): void {
 		console.log("BasketWsApiController :: onMessOffersDone ::", sessId);
+	}
+
+	private onServiceMessage(mess: IMessage): void {
+		let scope = this;
+
+		if (mess.id === ZapMessageType.GetOffersInit) {
+			this.onMessOffersInit(mess.tag)
+		}
+
+		if (mess.id === ZapMessageType.VendorOffer) {
+			this.onMessVendorOffer(mess.tag, mess.data);
+		}
+
+		if (mess.id === ZapMessageType.GetOffersDone) {
+			this.onMessOffersDone(mess.tag);
+		}
 	}
 
 	/**

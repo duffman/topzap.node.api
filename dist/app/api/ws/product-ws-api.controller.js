@@ -5,7 +5,7 @@
  * Proprietary and confidential
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-const zap_message_types_1 = require("@zapModels/zap-message-types");
+const zap_message_types_1 = require("@zapModels/messages/zap-message-types");
 class ProductWsApiController {
     attachWSS(wss) {
         this.wss = wss;

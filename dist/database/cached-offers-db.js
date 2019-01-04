@@ -8,6 +8,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const database_manager_1 = require("@putteDb/database-manager");
 const zap_offer_model_1 = require("@zapModels/zap-offer.model");
 const cli_logger_1 = require("@cli/cli.logger");
+const zappy_app_settings_1 = require("@app/zappy.app.settings");
 class CachedOffersDb {
     constructor() {
         this.db = new database_manager_1.DbManager();
@@ -43,7 +44,9 @@ class CachedOffersDb {
 			FROM
 				cached_offers
 			WHERE
-				cached_offers.cached_time > NOW() - INTERVAL 20 MINUTE
+				code='${code}'
+				AND
+				cached_offers.cached_time > NOW() - INTERVAL ${zappy_app_settings_1.Settings.Caching.CacheTTL} MINUTE
 		`;
         return new Promise((resolve, reject) => {
             return this.db.dbQuery(sql).then(res => {

@@ -5,8 +5,9 @@
  * Proprietary and confidential
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+const cli_logger_1 = require("@cli/cli.logger");
 const igniter_messages_1 = require("@igniter/messaging/igniter-messages");
-const zap_message_types_1 = require("@zapModels/zap-message-types");
+const zap_message_types_1 = require("@zapModels/messages/zap-message-types");
 const message_types_1 = require("@igniter/messaging/message-types");
 const basket_handler_1 = require("@components/basket/basket.handler");
 const session_manager_1 = require("@components/session-manager");
@@ -14,6 +15,8 @@ const message_factory_1 = require("@igniter/messaging/message-factory");
 const product_db_1 = require("@db/product-db");
 const get_offers_messages_1 = require("@zapModels/messages/get-offers-messages");
 const cached_offers_db_1 = require("@db/cached-offers-db");
+const zappy_app_settings_1 = require("@app/zappy.app.settings");
+const pstr_utils_1 = require("@putte/pstr-utils");
 class BasketWsApiController {
     constructor(debugMode = false) {
         this.debugMode = debugMode;
@@ -52,16 +55,20 @@ class BasketWsApiController {
         let mess = new igniter_messages_1.IgniterMessage(message_types_1.MessageType.Action, zap_message_types_1.ZapMessageType.GetOffersDone, {}, sessId);
         this.wss.sendToSession(sessId, mess);
     }
-    doGetOffers(code, sessId) {
+    /**
+     * Attempt to get cached offers with search service fallback
+     * @param {string} code
+     * @param {string} sessId
+     */
+    getCachedOffers(code, sessId) {
         let scope = this;
         console.log("doGetOffers :: " + code + " :: " + sessId);
         this.cachedOffersDb.getCachedOffers(code).then(res => {
             return res;
         }).catch(err => {
-            console.log("doGetOffers :: Catch ::", err);
+            console.log("BasketWsApiController :: doGetOffers :: Catch ::", err);
             return null;
         }).then((cachedRes) => {
-            console.log("Final THEN ::", cachedRes);
             //
             // Simulate Messages Sent using a regular lookup
             //
@@ -81,26 +88,28 @@ class BasketWsApiController {
             }
         });
     }
+    doGetOffers(sessId, mess) {
+        let code = mess.data.code;
+        if (!pstr_utils_1.PStrUtils.isNumeric(code)) {
+            cli_logger_1.Logger.logDebugErr("BasketWsApiController :: doGetOffers ::", code);
+            this.wss.sendError(sessId, zap_message_types_1.ZapMessageType.ErrInvalidCode, {}, mess.tag);
+            return;
+        }
+        if (zappy_app_settings_1.Settings.Caching.UseCachedOffers) {
+            this.getCachedOffers(code, sessId);
+        }
+        else {
+            this.emitGetOffersMessage(code, sessId); // Call price service
+        }
+    }
     onBasketAdd(sessId, mess) {
-        this.doGetOffers(mess.data.code, sessId);
+        this.doGetOffers(mess, sessId);
         //this.emitGetOffersMessage(mess.data.code, sessId);
         mess.ack();
     }
     attachServiceClient(client) {
         this.serviceClient = client;
         this.serviceClient.onMessage(this.onServiceMessage.bind(this));
-    }
-    onServiceMessage(mess) {
-        let scope = this;
-        if (mess.id === zap_message_types_1.ZapMessageType.GetOffersInit) {
-            this.onMessOffersInit(mess.tag);
-        }
-        if (mess.id === zap_message_types_1.ZapMessageType.VendorOffer) {
-            this.onMessVendorOffer(mess.tag, mess.data);
-        }
-        if (mess.id === zap_message_types_1.ZapMessageType.GetOffersDone) {
-            this.onMessOffersDone(mess.tag);
-        }
     }
     onBasketGet(sessId) {
         console.log("onBasketGet");
@@ -110,6 +119,8 @@ class BasketWsApiController {
         this.wss.sendToSession(sessId, message);
     }
     onBasketRem(sessId, data) {
+        let code = data.code;
+        cli_logger_1.Logger.logYellow("REMOVE FROM BASKET :: CODE ::", code);
     }
     onBasketPull(sessId, mess) {
         this.basketHandler.getExtSessionBasket(sessId).then(result => {
@@ -132,6 +143,18 @@ class BasketWsApiController {
     }
     onMessOffersDone(sessId) {
         console.log("BasketWsApiController :: onMessOffersDone ::", sessId);
+    }
+    onServiceMessage(mess) {
+        let scope = this;
+        if (mess.id === zap_message_types_1.ZapMessageType.GetOffersInit) {
+            this.onMessOffersInit(mess.tag);
+        }
+        if (mess.id === zap_message_types_1.ZapMessageType.VendorOffer) {
+            this.onMessVendorOffer(mess.tag, mess.data);
+        }
+        if (mess.id === zap_message_types_1.ZapMessageType.GetOffersDone) {
+            this.onMessOffersDone(mess.tag);
+        }
     }
     /**
      * Emit Search Message through Search Service

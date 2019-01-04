@@ -9,7 +9,7 @@ const uuid4 = require("uuid/v4");
 const igniter_messages_1 = require("@igniter/messaging/igniter-messages");
 class MessageFactory {
     static newIgniterMessage(messageType, messageId, data = null, tag = null) {
-        data = data === null ? {} : data;
+        //data = data === null ? {} : data;
         tag = tag === null ? uuid4() : tag;
         let message = new igniter_messages_1.IgniterMessage(messageType, messageId, data, tag);
         return message;

@@ -27,7 +27,7 @@ const controller_utils_1 = require("@api/controller.utils");
 const product_api_controller_1 = require("@api/rest/product-api.controller");
 const prand_num_1 = require("@putte/prand-num");
 const pvar_utils_1 = require("@putte/pvar-utils");
-const zap_message_types_1 = require("@zapModels/zap-message-types");
+const zap_message_types_1 = require("@zapModels/messages/zap-message-types");
 const phttp_client_1 = require("@putte/inet/phttp-client");
 class BasketApiController {
     constructor(debugMode = false) {
@@ -312,7 +312,7 @@ class BasketApiController {
             resp.json(result);
         }).catch(err => {
             controller_utils_1.ApiControllerUtils.internalError(resp);
-            cli_logger_1.Logger.logError("SearchApiController :: error ::", err);
+            cli_logger_1.Logger.logError("SearchWsApiController :: error ::", err);
         });
     }
     apiGetBasket(req, resp) {

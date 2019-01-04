@@ -55,6 +55,17 @@ class Logger {
             //log(chalk.cyan("#DEBUG :: " + caller.constructor.name + " :: " + logMessage), logData);
         }
     }
+    static logDebugErr(logMessage, data = null) {
+        if (!cli_global_1.CliGlobal.DebugMode)
+            return;
+        data = data !== null ? JSON.stringify(data) : null;
+        if (data === null) {
+            log(chalk.red("#ERR :: " + logMessage));
+        }
+        else {
+            log(chalk.red("#ERR :: " + logMessage + " :: " + data));
+        }
+    }
     static logStd(caller, logMessage, logData = "") {
         if (cli_global_1.CliGlobal.DebugMode) {
             log(chalk.cyan("#DEBUG :: " + logMessage), logData);

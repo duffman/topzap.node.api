@@ -38,7 +38,7 @@ import { PVarUtils }              from '@putte/pvar-utils';
 import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
 import { IMessage }               from '@igniter/messaging/igniter-messages';
 import { MessageType }            from '@igniter/messaging/message-types';
-import { ZapMessageType }         from '@zapModels/zap-message-types';
+import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { PHttpClient }            from '@putte/inet/phttp-client';
 
 export class BasketApiController implements IApiController {
@@ -414,7 +414,7 @@ export class BasketApiController implements IApiController {
 
 		}).catch(err => {
 			ApiControllerUtils.internalError(resp);
-			Logger.logError("SearchApiController :: error ::", err);
+			Logger.logError("SearchWsApiController :: error ::", err);
 		});
 	}
 

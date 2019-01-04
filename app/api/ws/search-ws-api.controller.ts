@@ -14,13 +14,13 @@ import { IZapOfferResult }        from "@zapModels/zap-offer.model";
 import { SocketServer }           from '@igniter/coldmind/socket-io.server';
 import { IMessage }               from '@igniter/messaging/igniter-messages';
 import { IgniterMessage }         from '@igniter/messaging/igniter-messages';
-import { ZapMessageType }         from '@zapModels/zap-message-types';
+import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { MessageType }            from '@igniter/messaging/message-types';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { CachedOffersDb }         from '@db/cached-offers-db';
 import { GetOffersInit }          from '@zapModels/messages/get-offers-messages';
 
-export class SearchApiController implements IWSApiController {
+export class SearchWsApiController implements IWSApiController {
 	wss: SocketServer;
 	serviceClient: ClientSocket;
 	cachedOffersDb: CachedOffersDb;
@@ -206,7 +206,7 @@ export class SearchApiController implements IWSApiController {
 
 			}).catch((err) => {
 				ApiControllerUtils.internalError(resp);
-				Logger.logError("SearchApiController :: error ::", err);
+				Logger.logError("SearchWsApiController :: error ::", err);
 			})
 		});
 	}
@@ -235,6 +235,6 @@ export class SearchApiController implements IWSApiController {
 }
 
 if (CliCommander.debug()) {
-	let app = new SearchApiController();
+	let app = new SearchWsApiController();
 	//app.doDebugSearch(null, null);
 }

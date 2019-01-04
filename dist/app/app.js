@@ -16,7 +16,7 @@ const cli_logger_1 = require("@cli/cli.logger");
 const miner_api_controller_1 = require("@api/miner-api-controller");
 const service_api_controller_1 = require("@api/rest/service-api.controller");
 const cli_commander_1 = require("@cli/cli.commander");
-const search_api_controller_1 = require("@api/search-api.controller");
+const search_ws_api_controller_1 = require("@api/ws/search-ws-api.controller");
 const product_api_controller_1 = require("@api/rest/product-api.controller");
 const basket_api_controller_1 = require("@app/api/rest/basket-api.controller");
 const data_dump_api_controller_1 = require("@api/data-dump-api.controller");
@@ -24,6 +24,7 @@ const socket_io_server_1 = require("@igniter/coldmind/socket-io.server");
 const socket_io_client_1 = require("@igniter/coldmind/socket-io.client");
 const data_cache_controller_1 = require("@api/data-cache-controller");
 const basket_ws_api_controller_1 = require("@api/ws/basket-ws-api.controller");
+const service_ws_api_controller_1 = require("@api/ws/service-ws-api.controller");
 class ZapApp {
     /*
 let sessionSettings = {
@@ -145,7 +146,8 @@ routes.use(session(sessionSettings));
     }
     initWsControllers() {
         const controllers = this.wsControllers;
-        controllers.push(new search_api_controller_1.SearchApiController(this.debugMode));
+        controllers.push(new service_ws_api_controller_1.ServiceWsApiController(this.debugMode));
+        controllers.push(new search_ws_api_controller_1.SearchWsApiController(this.debugMode));
         controllers.push(new basket_ws_api_controller_1.BasketWsApiController(this.debugMode));
         controllers.push(new data_cache_controller_1.DataCacheController(this.debugMode));
         //

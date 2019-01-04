@@ -6,7 +6,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 const message_types_1 = require("@igniter/messaging/message-types");
-const zap_message_types_1 = require("@zapModels/zap-message-types");
+const zap_message_types_1 = require("@zapModels/messages/zap-message-types");
 class PriceSearchService {
     constructor(serviceClient) {
         this.serviceClient = serviceClient;

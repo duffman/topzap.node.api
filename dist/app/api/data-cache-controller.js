@@ -6,7 +6,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 const cached_offers_db_1 = require("@db/cached-offers-db");
-const zap_message_types_1 = require("@zapModels/zap-message-types");
+const zap_message_types_1 = require("@zapModels/messages/zap-message-types");
 class DataCacheController {
     constructor(debugMode = false) {
         this.debugMode = debugMode;

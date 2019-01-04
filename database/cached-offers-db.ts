@@ -8,6 +8,7 @@ import { DbManager }              from '@putteDb/database-manager';
 import { IVendorOfferData }       from '@zapModels/zap-offer.model';
 import { VendorOfferData }        from '@zapModels/zap-offer.model';
 import { Logger }                 from '@cli/cli.logger';
+import {Settings} from '@app/zappy.app.settings';
 
 export class CachedOffersDb {
 	db: DbManager;
@@ -50,7 +51,9 @@ export class CachedOffersDb {
 			FROM
 				cached_offers
 			WHERE
-				cached_offers.cached_time > NOW() - INTERVAL 20 MINUTE
+				code='${code}'
+				AND
+				cached_offers.cached_time > NOW() - INTERVAL ${Settings.Caching.CacheTTL} MINUTE
 		`;
 
 		return new Promise((resolve, reject) => {

@@ -4,6 +4,8 @@
  * Proprietary and confidential
  */
 
-export class BasketAddManager {
-
+export class AppSettings {
+	settings: any;
+	constructor() {
+	}
 }

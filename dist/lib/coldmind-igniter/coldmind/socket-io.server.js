@@ -12,6 +12,8 @@ const events_1 = require("events");
 const igniter_settings_1 = require("@igniter/igniter.settings");
 const igniter_messages_1 = require("@igniter/messaging/igniter-messages");
 const message_utils_1 = require("@igniter/messaging/message-utils");
+const message_types_1 = require("@igniter/messaging/message-types");
+const message_factory_1 = require("@igniter/messaging/message-factory");
 class SocketEntry {
     constructor(sessionId, socket) {
         this.sessionId = sessionId;
@@ -59,15 +61,25 @@ class SocketServer {
         }
         return result;
     }
-    sendToSession(sessId, message) {
+    emitToSession(sessId, messageType, mess) {
         let entry = this.getSessionSocketEntry(sessId);
         console.log("sendToSession :: sessId ::", sessId);
         if (entry === null) {
+            console.log(`Socket obj for session with id '${sessId}' not found!`);
             return false;
         }
         console.log("emitting :: socketId ::", entry.socket.id);
-        entry.socket.emit(socket_io_types_1.IOTypes.SOCKET_IO_MESSAGE, message);
+        console.log(`emitting '${mess.id}' :: data :: socketId ::`, mess.data);
+        entry.socket.emit(messageType, mess);
         return true;
+    }
+    sendToSession(sessId, mess) {
+        return this.emitToSession(sessId, socket_io_types_1.IOTypes.SOCKET_IO_MESSAGE, mess);
+    }
+    sendError(sessId, id, data, tag = null) {
+        data = data === null ? {} : data;
+        let mess = message_factory_1.MessageFactory.newIgniterMessage(message_types_1.MessageType.Error, id, data, tag);
+        return this.sendToSession(sessId, mess);
     }
     createServer() {
         let httpServer = http.createServer();

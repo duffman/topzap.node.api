@@ -24,7 +24,7 @@ import { IWSApiController }       from "@api/api-controller";
 import { ServiceApiController }   from "@api/rest/service-api.controller";
 import { CliCommander }           from "@cli/cli.commander";
 import { IZappyApp }              from "@app/zappy.app";
-import { SearchApiController }    from "@api/search-api.controller";
+import { SearchWsApiController }    from "@api/ws/search-ws-api.controller";
 import { ProductApiController }   from "@api/rest/product-api.controller";
 import { IZynMiddleware }         from "@lib/zyn-express/zyn.middleware";
 import { ZynSession }             from "@lib/zyn-express/zyn.session";
@@ -36,6 +36,7 @@ import { IClientSocket }          from '@igniter/coldmind/socket-io.client';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { DataCacheController }    from '@api/data-cache-controller';
 import { BasketWsApiController }  from '@api/ws/basket-ws-api.controller';
+import {ServiceWsApiController} from '@api/ws/service-ws-api.controller';
 
 export class ZapApp implements IZappyApp {
 	static developmentMode = false;
@@ -209,7 +210,8 @@ routes.use(session(sessionSettings));
 	private initWsControllers() {
 		const controllers = this.wsControllers;
 
-		controllers.push(new SearchApiController(this.debugMode));
+		controllers.push(new ServiceWsApiController(this.debugMode));
+		controllers.push(new SearchWsApiController(this.debugMode));
 		controllers.push(new BasketWsApiController(this.debugMode));
 		controllers.push(new DataCacheController(this.debugMode));
 

@@ -5,6 +5,11 @@
  */
 
 export module Settings {
+	export module Caching {
+		export const UseCachedOffers = true;
+		export const CacheTTL = 20;
+	}
+
 	export module PriceServiceApi {
 		export const Endpoint = "http://localhost:6562";
 	}

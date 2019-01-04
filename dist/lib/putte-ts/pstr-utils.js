@@ -33,6 +33,10 @@ class PStrUtils {
     static isEmpty(str) {
         return (str === undefined) || (!str || 0 === str.length);
     }
+    static isNumeric(value) {
+        value = PStrUtils.isEmpty(value) ? "" : value;
+        return value.match(/^[0-9]+$/) != null;
+    }
     static replaceStr(source, find, replaceWith) {
         return source.replace(find, String(replaceWith));
     }

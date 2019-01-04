@@ -8,7 +8,7 @@ import { IClientSocket }          from '@igniter/coldmind/socket-io.client';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { IMessage }               from '@igniter/messaging/igniter-messages';
 import { MessageType }            from '@igniter/messaging/message-types';
-import { ZapMessageType }         from '@zapModels/zap-message-types';
+import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { DbManager }              from '@putteDb/database-manager';
 import { ProductDb }              from '@db/product-db';
 

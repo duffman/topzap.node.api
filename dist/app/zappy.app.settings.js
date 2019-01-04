@@ -7,6 +7,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var Settings;
 (function (Settings) {
+    let Caching;
+    (function (Caching) {
+        Caching.UseCachedOffers = true;
+        Caching.CacheTTL = 20;
+    })(Caching = Settings.Caching || (Settings.Caching = {}));
     let PriceServiceApi;
     (function (PriceServiceApi) {
         PriceServiceApi.Endpoint = "http://localhost:6562";

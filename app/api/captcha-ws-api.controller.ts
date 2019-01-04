@@ -7,7 +7,7 @@ import { IWSApiController }       from '@api/api-controller';
 import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import {IMessage} from '@igniter/messaging/igniter-messages';
-import {ZapMessageType} from '@zapModels/zap-message-types';
+import {ZapMessageType} from '@zapModels/messages/zap-message-types';
 
 export class CaptchaWsApiController implements IWSApiController {
 	debugMode: boolean;

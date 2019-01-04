@@ -16,7 +16,8 @@ import {IProductData} from '@zapModels/product.model';
 import {IVendorModel} from '@zapModels/vendor-model';
 
 export class BasketHandler {
-	constructor(public sessManager: SessionManager) {}
+	constructor(public sessManager: SessionManager) {
+	}
 
 	public getSessionBasket(sessId: string): ISessionBasket {
 		return this.sessManager.getSessionBasket(sessId);
@@ -228,5 +229,59 @@ export class BasketHandler {
 				console.log("  ITEM ::", item);
 			}
 		}
+	}
+
+	/**
+	 * Remove product assicoated with a barcode from a session basket
+	 * @param {string} sessId
+	 * @param {string} code
+	 * @returns {boolean}
+	 */
+	public removeProductByCode(sessId: string, code: string, basket: ISessionBasket = null): boolean {
+		let result = false;
+
+		if (basket === null) {
+			basket =this.sessManager.getSessionBasket(sessId);
+		}
+
+		for (let i = 0; i < basket.productData.length; i++) {
+			let product = basket.productData[i];
+			if (product.code === code) {
+				basket.productData.slice(i, 1);
+				result = true;
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Remove item by barcode from all vendor baskets
+	 * @param {string} sessId
+	 * @param {string} code
+	 * @param {ISessionBasket} basket
+	 */
+	public removeItemByCode(sessId: string, code: string, basket: ISessionBasket = null): boolean {
+		let result = false;
+
+		if (basket === null) {
+			basket =this.sessManager.getSessionBasket(sessId);
+		}
+
+		this.removeProductByCode(sessId, code, basket);
+
+		for (const vendorData of basket.data) {
+			for (let i = 0; i < vendorData.items.length; i++) {
+				let item = vendorData.items[i];
+				if (item.code === code) {
+					vendorData.items.slice(i, 1);
+					result = true;
+					break;
+				}
+			}
+		}
+
+		return result;
 	}
 }

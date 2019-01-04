@@ -8,7 +8,7 @@ import { IWSApiController }       from '@api/api-controller';
 import {ISocketServer, SocketServer} from '@igniter/coldmind/socket-io.server';
 import {ClientSocket, IClientSocket} from '@igniter/coldmind/socket-io.client';
 import {IMessage} from '@igniter/messaging/igniter-messages';
-import {ZapMessageType} from '@zapModels/zap-message-types';
+import {ZapMessageType} from '@zapModels/messages/zap-message-types';
 
 export class ProductWsApiController implements IWSApiController {
 	debugMode: boolean;
