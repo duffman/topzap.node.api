@@ -16,17 +16,10 @@ prodDb.getProducts(['0819338020068', '0887195000424']).then(res => {
 });
 */
 
-import { IVendorModel, VendorModel } from '@zapModels/vendor-model';
+import { IVendorModel, Vendor } from '@zapModels/vendor-model';
 
 let vendorId: number = 1;
 
-/*
-function createVendor(): IVendorModel {
-	let model = new VendorModel();
-
-	return model;
-}
-*/
 
 function createBasket(): IVendorBasket {
 	let basket = new VendorBasketModel(vendorId);
@@ -46,8 +39,7 @@ function createBasket(): IVendorBasket {
 			code,
 			vendorId,
 			title,
-			offer,
-			count
+			offer
 		);
 
 		items.push(item)

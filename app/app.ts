@@ -14,7 +14,6 @@ import * as session               from "express-session";
 import * as cors                  from "cors";
 import * as uidSafe               from "uid-safe";
 import { DbManager }              from "@putteDb/database-manager";
-import { SearchResult }           from "@models/search-result";
 import { Logger }                 from "@cli/cli.logger";
 import { MinerApiController }     from "@api/miner-api-controller";
 import { ProductDb }              from "@db/product-db";
@@ -36,7 +35,8 @@ import { IClientSocket }          from '@igniter/coldmind/socket-io.client';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { DataCacheController }    from '@api/data-cache-controller';
 import { BasketWsApiController }  from '@api/ws/basket-ws-api.controller';
-import {ServiceWsApiController} from '@api/ws/service-ws-api.controller';
+import { ServiceWsApiController } from '@api/ws/service-ws-api.controller';
+import { AnalyticsWsApiController } from '@api/ws/analytics-ws-api.controller';
 
 export class ZapApp implements IZappyApp {
 	static developmentMode = false;
@@ -214,6 +214,7 @@ routes.use(session(sessionSettings));
 		controllers.push(new SearchWsApiController(this.debugMode));
 		controllers.push(new BasketWsApiController(this.debugMode));
 		controllers.push(new DataCacheController(this.debugMode));
+		controllers.push(new AnalyticsWsApiController(this.debugMode));
 
 		//
 		// Pass the WS Server and Service Client to each controller

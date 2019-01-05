@@ -6,7 +6,6 @@
 
 import { Router }                 from "express";
 import { IApiController }         from '@api/api-controller';
-import { SearchResult }           from '@models/search-result';
 import { Logger }                 from '@cli/cli.logger';
 import { ProductDb }              from '@db/product-db';
 import { ISocketServer }          from '@igniter/coldmind/socket-io.server';

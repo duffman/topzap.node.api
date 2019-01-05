@@ -244,10 +244,12 @@ export class BasketHandler {
 			basket =this.sessManager.getSessionBasket(sessId);
 		}
 
+		basket.productData = !(basket.productData) ? new Array<IProductData>() : basket.productData;
+
 		for (let i = 0; i < basket.productData.length; i++) {
 			let product = basket.productData[i];
 			if (product.code === code) {
-				basket.productData.slice(i, 1);
+				basket.productData.splice(i, 1);
 				result = true;
 				break;
 			}
@@ -265,17 +267,28 @@ export class BasketHandler {
 	public removeItemByCode(sessId: string, code: string, basket: ISessionBasket = null): boolean {
 		let result = false;
 
+		console.log("removeItemByCode ::", basket);
+
 		if (basket === null) {
 			basket =this.sessManager.getSessionBasket(sessId);
 		}
 
+		console.log("removeItemByCode ::", basket);
+
+
 		this.removeProductByCode(sessId, code, basket);
 
+		console.log("removeItemByCode :: removeProductByCode ::", basket);
+
+
 		for (const vendorData of basket.data) {
+
+			console.log("VENDOR BASKET ::", vendorData);
+
 			for (let i = 0; i < vendorData.items.length; i++) {
 				let item = vendorData.items[i];
 				if (item.code === code) {
-					vendorData.items.slice(i, 1);
+					vendorData.items.splice(i, 1);
 					result = true;
 					break;
 				}

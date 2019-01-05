@@ -23,6 +23,7 @@ import { IVendorOfferData }       from '@zapModels/zap-offer.model';
 import { CachedOffersDb }         from '@db/cached-offers-db';
 import {Settings} from '@app/zappy.app.settings';
 import {PStrUtils} from '@putte/pstr-utils';
+import {BasketRemItemRes} from '@zapModels/basket/remove-item-result';
 
 export class BasketWsApiController implements IWSApiController {
 	productDb: ProductDb;
@@ -51,11 +52,11 @@ export class BasketWsApiController implements IWSApiController {
 			}
 
 			if (mess.id === ZapMessageType.BasketGet) {
-				this.onBasketGet(sessId);
+				this.onBasketGet(sessId, mess);
 			}
 
 			if (mess.id === ZapMessageType.BasketRem) {
-				this.onBasketRem(sessId, mess.data);
+				this.onBasketRem(sessId, mess);
 			}
 
 			if (mess.id === ZapMessageType.BasketAdd) {
@@ -143,21 +144,30 @@ export class BasketWsApiController implements IWSApiController {
 		this.serviceClient.onMessage(this.onServiceMessage.bind(this));
 	}
 
-	private onBasketGet(sessId: string): void {
+	private onBasketGet(sessId: string, mess: IMessage): void {
+		/*console.log("onBasketGet");
+		let bestBasket: IBasketModel = this.basketHandler.getBestBasket(sessId);
+		mess.replyTyped(ZapMessageType.BasketGet, bestBasket);
+		*/
+
 		console.log("onBasketGet");
 		let bestBasket: IBasketModel = this.basketHandler.getBestBasket(sessId);
 		console.log("onBasketGet :: bestBasket");
-		let message = MessageFactory.newIgniterMessage(MessageType.Action, ZapMessageType.BasketGet, bestBasket);
-		this.wss.sendToSession(sessId, message);
+		let messReply = MessageFactory.newIgniterMessage(MessageType.Action, ZapMessageType.BasketGet, bestBasket);
+		this.wss.sendToSession(sessId, messReply);
 	}
 
-	private onBasketRem(sessId: string, data: any): void {
-		let code = data.code;
+	private onBasketRem(sessId: string, mess: IMessage): void {
+		let code = mess.data.code;
+		let res = this.basketHandler.removeItemByCode(sessId, code);
+
 		Logger.logYellow("REMOVE FROM BASKET :: CODE ::", code);
+		mess.replyTyped(ZapMessageType.BasketRemRes, new BasketRemItemRes(res, code));
 	}
 
 	private onBasketPull(sessId: string, mess: IMessage): void {
 		this.basketHandler.getExtSessionBasket(sessId).then(result => {
+			//mess.replyTyped(ZapMessageType.BasketPull, result);
 			let message = MessageFactory.newIgniterMessage(MessageType.Action, ZapMessageType.BasketPull, result);
 			this.wss.sendToSession(sessId, message);
 		}).catch(err => {

@@ -8,9 +8,10 @@ import { DbManager }              from '@putteDb/database-manager';
 import { IVendorOfferData }       from '@zapModels/zap-offer.model';
 import { VendorOfferData }        from '@zapModels/zap-offer.model';
 import { Logger }                 from '@cli/cli.logger';
-import {Settings} from '@app/zappy.app.settings';
+import { Settings }               from '@app/zappy.app.settings';
+import { IDbController }          from '@db/db.controller';
 
-export class CachedOffersDb {
+export class CachedOffersDb implements IDbController {
 	db: DbManager;
 
 	constructor() {
@@ -38,6 +39,7 @@ export class CachedOffersDb {
 
 		this.db.dbQuery(sql).then(res => {
 			// This is a fire and forget thing, so we do not do anything...
+			console.log("cacheOffer :: affectedRows ::", res.affectedRows)
 		}).catch(err => {
 			Logger.logError("CachedOffersDb :: cacheOffer :: err ::", err);
 		});

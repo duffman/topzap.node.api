@@ -26,11 +26,11 @@ export class ProductApiController implements IRestApiController {
 
 	public getProduct(barcode: string): Promise<IProductData> {
 		return new Promise((resolve, reject) => {
-			this.productDb.getProduct(barcode).then((res) => {
+			this.productDb.getGameData(barcode).then((res) => {
 				resolve(res);
-				console.log("%%%%% ::: getProduct ::", res);
+				console.log("%%%%% ::: getGameData ::", res);
 			}).catch((err) => {
-				Logger.logError("ProductApiController :: getProduct :: error ::", err);
+				Logger.logError("ProductApiController :: getGameData :: error ::", err);
 				reject(err);
 			});
 		});
@@ -61,8 +61,8 @@ export class ProductApiController implements IRestApiController {
 				productResult.success = true;
 				productResult.productData = productData;
 
-				//Logger.log("routes.post/prod :: ProductApiController :: getProduct ::", productData);
-				//console.log("routes.post/prod :: JSON.stringify :: getProduct ::", JSON.stringify(productData))
+				//Logger.log("routes.post/prod :: ProductApiController :: getGameData ::", productData);
+				//console.log("routes.post/prod :: JSON.stringify :: getGameData ::", JSON.stringify(productData))
 
 				resp.json(productResult);
 
@@ -83,7 +83,7 @@ export class ProductApiController implements IRestApiController {
 			console.log("CODE :: ", code);
 
 			scope.getProduct(code).then((prodResult) => {
-				Logger.log("ProductApiController :: getProduct ::", prodResult);
+				Logger.log("ProductApiController :: getGameData ::", prodResult);
 
 				console.log("KKKKK ::", JSON.stringify(prodResult))
 

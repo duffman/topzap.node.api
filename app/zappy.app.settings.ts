@@ -7,7 +7,7 @@
 export module Settings {
 	export module Caching {
 		export const UseCachedOffers = true;
-		export const CacheTTL = 20;
+		export const CacheTTL = 1920;
 	}
 
 	export module PriceServiceApi {

@@ -7,12 +7,11 @@
 import { DbManager }              from "@putteDb/database-manager";
 import { SQLTableDataRow }        from "@putteDb/sql-table-data-row";
 import { Logger }                 from "@cli/cli.logger";
-import { IVendorModel }           from "@zapModels/vendor-model";
-import { VendorModel}             from "@zapModels/vendor-model";
+import {IVendorModel, Vendor} from "@zapModels/vendor-model";
 import { PlatformTypeParser }     from "@utils/platform-type-parser"
 import { PStrUtils }              from "@putte/pstr-utils";
 import { CliCommander }           from "@cli/cli.commander";
-import { IProductData }           from '@zapModels/product.model';
+import {GameProductData, IGameProductData, IProductData} from '@zapModels/product.model';
 import { ProductData }            from '@zapModels/product.model';
 
 export class ProductDb {
@@ -29,7 +28,7 @@ export class ProductDb {
 	// Get Product
 	// - extended adds pltform image info
 	//
-	public getProduct(barcode: string, extended: boolean = true, debug: boolean = false): Promise<IProductData> {
+	public getGameData(barcode: string, extended: boolean = true, debug: boolean = false): Promise<IGameProductData> {
 		function generateSql(): string {
 			if (!debug) {
 				return `SELECT games.* FROM games, product_edition AS edition WHERE edition.barcode='${barcode}' AND games.id = edition.game_id`;
@@ -42,11 +41,11 @@ export class ProductDb {
 
 		Logger.logGreen("SQL ::", sql);
 
-		function createProductModel(dbRow: SQLTableDataRow): IProductData {
+		function createGameProductModel(dbRow: SQLTableDataRow): IGameProductData {
 			if (dbRow.isEmpty) {
 				return new ProductData();
 			} else {
-				return new ProductData(
+				return new GameProductData(
 					dbRow.getValAsInt("id"),
 					barcode,
 					dbRow.getValAsStr("platform_name"),
@@ -67,7 +66,7 @@ export class ProductDb {
 			return this.db.dbQuery(sql).then((dbRes) => {
 				let dbRow = dbRes.safeGetFirstRow();
 
-				let model = createProductModel(dbRow);
+				let model = createGameProductModel(dbRow);
 				let havePlatformAndTitle = !PStrUtils.isEmpty(model.platformName) && !PStrUtils.isEmpty(model.title);
 
 				//
@@ -79,13 +78,13 @@ export class ProductDb {
 					model.platformIcon = gpp.parseFromName(model.title, true);
 					model.platformImage = gpp.parseFromName(model.platformName, false);
 
-					Logger.logCyan("getProduct() :: Model", model);
+					Logger.logCyan("getGameData() :: Model", model);
 				}
 
 				resolve(model);
 
 			}).catch((error) => {
-				Logger.logError("getProduct() :: error ::", error);
+				Logger.logError("getGameData() :: error ::", error);
 				reject(error);
 			});
 		});
@@ -98,7 +97,7 @@ export class ProductDb {
 
 		function getProductPromise(code: string): Promise<IProductData> {
 			return new Promise((resolve, reject) => {
-				scope.getProduct(code).then(res => {
+				scope.getGameData(code).then(res => {
 					result.push(res);
 					resolve(res);
 
@@ -140,8 +139,8 @@ export class ProductDb {
 				for (let i = 0; i < dbRes.result.rowCount(); i++) {
 					let dbRow = dbRes.result.dataRows[i];
 
-					let model = new VendorModel(
-						dbRow.getValAsStr("id"),
+					let model = new Vendor(
+						dbRow.getValAsNum("id"),
 						dbRow.getValAsStr("identifier"),
 						dbRow.getValAsStr("vendor_type"),
 						dbRow.getValAsStr("name"),
@@ -167,7 +166,7 @@ export class ProductDb {
 if (CliCommander.debug()) {
 	console.log("DEBUG!");
 	let debug = new ProductDb();
-	debug.getProduct("0819338020068").then((res) => {
+	debug.getGameData("0819338020068").then((res) => {
 		console.log("ProductDb ::", res);
 	}).catch((err) => {
 		console.log("ProductDb :: err", err);
