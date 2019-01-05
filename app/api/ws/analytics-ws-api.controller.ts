@@ -20,6 +20,7 @@ export class AnalyticsWsApiController implements IWSApiController {
 
 	constructor(public debugMode: boolean) {
 		this.analyticsDb = new AnalyticsDb();
+		console.log("********* AnalyticsWsApiController");
 	}
 
 	public attachServiceClient(client: ClientSocket): void {
@@ -38,6 +39,7 @@ export class AnalyticsWsApiController implements IWSApiController {
 			let sessId = mess.socket.request.sessionID;
 
 			if (mess.id === ZapMessageType.BasketAdd) {
+				console.log("********* AnalyticsWsApiController :: ZapMessageType.BasketAdd");
 				this.onBasketAdd(sessId, mess);
 			}
 		});
