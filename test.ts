@@ -35,7 +35,7 @@ function createBasket(): IVendorBasket {
 		let count = 1;
 
 		let item = new BasketItem(
-			zid,
+			zid, 1,
 			code,
 			vendorId,
 			title,
@@ -52,10 +52,10 @@ function createBasket(): IVendorBasket {
 
 
 import {SessionBasket} from '@zapModels/session-basket';
-import {IVendorBasket, VendorBasketModel} from '@zapModels/basket.model';
 import {PRandNum} from '@putte/prand-num';
-import {BasketItem, IBasketItem} from '@zapModels/basket-item.model';
+import {BasketItem, IBasketItem} from '@zapModels/basket/basket-item.model';
 import {BasketHandler} from '@components/basket/basket.handler';
+import {IVendorBasket, VendorBasketModel} from '@zapModels/basket/vendor-basket.model';
 
 let bh = new BasketHandler(null);
 let sess = new SessionBasket();

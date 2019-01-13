@@ -21,6 +21,15 @@ import {GoogleCaptcha} from '@components/google-captcha';
 export class ServiceApiController implements IRestApiController {
 	constructor(public debugMode: boolean = false) {}
 
+	/**
+	 * Aquire HTTP Session ID
+	 * @returns {Promise<string>}
+	 */
+	public aquireSession(): Promise<string> {
+		return new Promise((resolve, reject) => {
+		});
+	}
+
 	private verifyCaptcha(req: Request, resp: Response): void {
 		let gCaptcha = new GoogleCaptcha();
 

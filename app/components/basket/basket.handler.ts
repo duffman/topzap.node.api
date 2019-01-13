@@ -3,17 +3,21 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  */
-import {BasketItem, IBasketItem} from '@zapModels/basket-item.model';
-import {IBasketModel, IVendorBasket, VendorBasketModel} from '@zapModels/basket.model';
-import {BasketAddResult, IBasketAddResult} from '@zapModels/basket-add-result';
-import {IVendorOfferData, IZapOfferResult} from '@zapModels/zap-offer.model';
-import {ISessionBasket, SessionBasket} from '@zapModels/session-basket';
-import {SessionManager} from '@components/session-manager';
-import {PRandNum} from '@putte/prand-num';
-import {ProductDb} from '@db/product-db';
-import {BarcodeParser} from '@zaplib/barcode-parser';
-import {IProductData} from '@zapModels/product.model';
-import {IVendorModel} from '@zapModels/vendor-model';
+
+import { IBasketItem }            from '@zapModels/basket/basket-item.model';
+import { BasketItem }             from '@zapModels/basket/basket-item.model';
+import { IBasketModel }           from '@zapModels/basket/basket.model';
+import { IVendorBasket }          from '@zapModels/basket/vendor-basket.model';
+import { VendorBasketModel }      from '@zapModels/basket/vendor-basket.model';
+import { IVendorOfferData }       from '@zapModels/zap-offer.model';
+import { ISessionBasket }         from '@zapModels/session-basket';
+import { SessionBasket }          from '@zapModels/session-basket';
+import { SessionManager }         from '@components/session-manager';
+import { PRandNum }               from '@putte/prand-num';
+import { ProductDb }              from '@db/product-db';
+import { BarcodeParser }          from '@zaplib/barcode-parser';
+import {IGameProductData, IProductData, ProductData} from '@zapModels/product.model';
+import { IVendorModel }           from '@zapModels/vendor-model';
 
 export class BasketHandler {
 	constructor(public sessManager: SessionManager) {
@@ -36,6 +40,7 @@ export class BasketHandler {
 
 		let resultItem = new BasketItem(
 			PRandNum.randomNum(),
+			1,
 			offerData.code,
 			offerData.vendorId,
 			offerData.title,
@@ -170,6 +175,46 @@ export class BasketHandler {
 		return sessionBasket;
 	}
 
+
+	/**
+	 * Attaches
+	 * @param {ISessionBasket} sessBasket
+	 * @param {IVendorModel[]} vendors
+	 */
+	public attachVendors(sessBasket: ISessionBasket, vendors: IVendorModel[]): void {
+		function getVendorDataById(vendorId: number): IVendorModel {
+			let result: IVendorModel = null;
+			for (let vendorData of vendors) {
+				if (vendorData.id === vendorId) {
+					result = vendorData;
+					break;
+				}
+			}
+
+			return result;
+		}
+
+		for (let vendorBasket of sessBasket.data) {
+			let vendorData = getVendorDataById(vendorBasket.vendorId);
+			vendorBasket.vendorData = vendorData;
+		}
+	}
+
+	/**
+	 * Calculate total value of each basket
+	 * @param {ISessionBasket} sessBasket
+	 */
+	private calcBasketTotals(sessBasket: ISessionBasket): void {
+		for (let vendorBasket of sessBasket.data) {
+			vendorBasket.totalValue = this.getBasketTotal(vendorBasket);
+		}
+	}
+d
+	/**
+	 * Get Session Basket with Vendor Data attached to each Vendor Basket
+	 * @param {string} sessId
+	 * @returns {Promise<ISessionBasket>}
+	 */
 	public getExtSessionBasket(sessId: string): Promise<ISessionBasket> {
 		let scope = this;
 		let sessBasket = this.getFullBasket(sessId);
@@ -180,6 +225,7 @@ export class BasketHandler {
 			return new Promise((resolve, reject) => {
 				let codes = scope.getBasketCodes(sessBasket);
 				return prodDb.getProducts(codes).then(res => {
+					console.log("FETRES :::", res);
 					resolve(res);
 				}).catch(err => {
 					console.log("getExtSessionBasket :: err ::", err);
@@ -198,14 +244,69 @@ export class BasketHandler {
 			});
 		}
 
+		function getProdData(code: string, prodData: IProductData[]): IProductData {
+			let res: IProductData = null;
+			for (let prod of prodData) {
+				if (prod.code === code) {
+					res = prod;
+					break;
+				}
+			}
+			return res;
+		}
+
+		function attachProductInfoToItem(sessBasket: ISessionBasket): void {
+			for (let vb of sessBasket.data) {
+				for (let item of vb.items) {
+					let prodData: IGameProductData = getProdData(item.code, sessBasket.productData);
+
+
+					item.thumbImage = prodData.thumbImage;
+					item.platformIcon = prodData.platformIcon;
+					item.releaseDate = prodData.releaseDate;
+
+
+					console.log("YAYAYAYAY prodData:::", prodData);
+				}
+			}
+		}
+
 		async function getSessionBasket(): Promise<void> {
 			try {
 				let prodData = await getProducts();
 				sessBasket.productData = prodData;
-				let vendorData = await getVendors();
-				sessBasket.vendorData = vendorData;
+				let vendors = await getVendors();
 
+				console.log("getSessionBasket ::", prodData);
+
+				// Sort the basket according to highest basket value
 				sessBasket = scope.sortSessionBasket(sessBasket);
+
+				// HACK TO ATTACH PROD DATA TO IBasketItem decendant IGameBasketItem
+				attachProductInfoToItem(sessBasket);
+
+
+				//Hack
+				for (let vbasket of sessBasket.data) {
+					vbasket.highestBidder = false;
+				}
+
+				// Set Highest Bidder Property to the first vendor...
+				if (sessBasket.data.length > 0) {
+					sessBasket.data[0].highestBidder = true;
+					console.log("HIGH BID SET ::", sessBasket.data[0]);
+				}
+
+				for (let b of sessBasket.data) {
+					console.log("BDATA ::", b);
+				}
+
+				// Duffman: 2019-01-05 Breaking Change, attach vendor data to each
+				// basket instead of attached directly to the root of the basket
+				// sessBasket.vendorData = vendors;
+
+				scope.attachVendors(sessBasket, vendors);
+				scope.calcBasketTotals(sessBasket);
 
 			} catch (err) {
 				console.log("getExtSessionBasket :: getSessionBasket ::", err)
@@ -270,19 +371,14 @@ export class BasketHandler {
 		console.log("removeItemByCode ::", basket);
 
 		if (basket === null) {
-			basket =this.sessManager.getSessionBasket(sessId);
+			basket = this.sessManager.getSessionBasket(sessId);
 		}
 
 		console.log("removeItemByCode ::", basket);
-
-
 		this.removeProductByCode(sessId, code, basket);
-
 		console.log("removeItemByCode :: removeProductByCode ::", basket);
 
-
 		for (const vendorData of basket.data) {
-
 			console.log("VENDOR BASKET ::", vendorData);
 
 			for (let i = 0; i < vendorData.items.length; i++) {

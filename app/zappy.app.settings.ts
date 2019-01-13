@@ -4,10 +4,17 @@
  * Proprietary and confidential
  */
 
+import { DateInterval }           from '@putte/date/DateInterval';
+
 export module Settings {
+	//export const allowedCORSOrigins = "*";
+	export const allowedCORSOrigins = "http://127.0.0.1:4200";
+	export const sessionCookieKey = "kaknyckel";
+	export const sessionSecret = "1gulka9n";
+
 	export module Caching {
 		export const UseCachedOffers = true;
-		export const CacheTTL = 1920;
+		export const CacheTTL = DateInterval.days(10); // 5760; // 4 days
 	}
 
 	export module PriceServiceApi {

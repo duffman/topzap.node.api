@@ -147,7 +147,9 @@ export class ProductDb {
 						dbRow.getValAsStr("description"),
 						dbRow.getValAsStr("website_url"),
 						dbRow.getValAsStr("logo_name"),
-						""
+						dbRow.getValAsStr("color"),
+						dbRow.getValAsStr("textColor"),
+						dbRow.getValAsStr("colorHighlight")
 					);
 
 					result.push(model);

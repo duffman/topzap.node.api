@@ -7,7 +7,6 @@
 import { MinerStatus }            from "@miner/miner-status";
 import * as express               from "express";
 import { NextFunction, Router }   from "express";
-import { ErrorRequestHandler }    from "express";
 import * as bodyParser            from "body-parser";
 import * as cookieParser          from "cookie-parser";
 import * as session               from "express-session";
@@ -17,26 +16,25 @@ import { DbManager }              from "@putteDb/database-manager";
 import { Logger }                 from "@cli/cli.logger";
 import { MinerApiController }     from "@api/miner-api-controller";
 import { ProductDb }              from "@db/product-db";
-import { IApiController }         from "@api/api-controller";
 import { IRestApiController }     from "@api/api-controller";
 import { IWSApiController }       from "@api/api-controller";
 import { ServiceApiController }   from "@api/rest/service-api.controller";
 import { CliCommander }           from "@cli/cli.commander";
 import { IZappyApp }              from "@app/zappy.app";
-import { SearchWsApiController }    from "@api/ws/search-ws-api.controller";
+import { SearchWsApiController }  from "@api/ws/search-ws-api.controller";
 import { ProductApiController }   from "@api/rest/product-api.controller";
 import { IZynMiddleware }         from "@lib/zyn-express/zyn.middleware";
-import { ZynSession }             from "@lib/zyn-express/zyn.session";
 import { BasketApiController }    from "@app/api/rest/basket-api.controller";
 import { DataDumpApiController }  from '@api/data-dump-api.controller';
 import { SocketServer }           from '@igniter/coldmind/socket-io.server';
 import { IMessage }               from '@igniter/messaging/igniter-messages';
-import { IClientSocket }          from '@igniter/coldmind/socket-io.client';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { DataCacheController }    from '@api/data-cache-controller';
 import { BasketWsApiController }  from '@api/ws/basket-ws-api.controller';
 import { ServiceWsApiController } from '@api/ws/service-ws-api.controller';
 import { AnalyticsWsApiController } from '@api/ws/analytics-ws-api.controller';
+import { Settings }               from '@app/zappy.app.settings';
+import * as path from 'path';
 
 export class ZapApp implements IZappyApp {
 	static developmentMode = false;
@@ -109,16 +107,15 @@ routes.use(session(sessionSettings));
 
 		this.wsServer.onMessage((message: IMessage) => {
 			console.log("WSSERVER :: Message ::", message.data);
-
 		});
 
 		this.webApp.use(this.webRoutes);
 
-
+		/*
 		this.webApp.use(cookieParser());
 		this.webApp.use(bodyParser.json()); // support json encoded bodies
 		this.webApp.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-
+		*/
 
 		this.serviceClient = new ClientSocket();
 		this.serviceClient.connect(null);
@@ -178,6 +175,14 @@ routes.use(session(sessionSettings));
 		// Get Static file
 		//
 		this.webApp.use(express.static('public'));
+		this.webApp.use("vendor", express.static("./public/images/vendors"));
+		this.webApp.use("vendors", express.static("public/images/vendors"));
+		this.webApp.use("vendors", express.static("public/images/vendors/"));
+		this.webApp.use("/vendorss", express.static("public/images/vendors/"));
+		this.webApp.use("/vendorsss", express.static("./public/images/vendors/"));
+		this.webApp.use("/vendorssss", express.static(path.join(__dirname,"./public/images/vendors/")));
+
+		this.webApp.use('/static', express.static(path.join(__dirname, 'public')))
 
 		this.webApp.get('/res/:filename', (req, res) => {
 			let filename = req.params.code;
@@ -226,8 +231,6 @@ routes.use(session(sessionSettings));
 		}
 	}
 
-
-
 	private configureWebSocket(): void {
 		return;
 		let wss = this.wsServer;
@@ -257,6 +260,12 @@ routes.use(session(sessionSettings));
 	private configureWebServer2(): void {
 		// set the view engine to ejs
 		this.webApp.set('view engine', 'ejs');
+
+		this.webApp.use(express.static('public'));
+		this.webApp.use("images", express.static("public/images"));
+
+		this.webApp.use('/static', express.static(path.join(__dirname, 'public')))
+
 
 /*
 		this.webApp.use(cookieParser());
@@ -299,30 +308,24 @@ routes.use(session(sessionSettings));
 
 		routes.use(this.sessionMiddleware);
 
-		routes.use(cookieParser());
+		routes.use(cookieParser(Settings.sessionSecret));
 		routes.use(bodyParser.json()); // support json encoded bodies
 		routes.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-		routes.use(function(req, res, next) {
-			let origin = req.headers['origin'] || req.headers['Origin'];
+		let allowCrossDomain = (req, res, next) => {
+			//let origin = req.headers['origin'] || req.headers['Origin'];
+			//let or: string = origin.toString();
+			//res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+			//res.header("Access-Control-Allow-Credentials", "true");
 
-			let or: string = origin.toString();
-
-			/*
-			console.log("ORIGIN ::", or);
-			res.header('Access-Control-Allow-Origin', or);
-			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+			res.header("Access-Control-Allow-Origin", Settings.allowedCORSOrigins);
+			res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
+			res.header("Access-Control-Allow-Headers", "Content-Type");
 			res.header("Access-Control-Allow-Credentials", "true");
-			*/
-
-			/*
-			res.header('Access-Control-Allow-Origin', origin[0]);
-			//res.header("Access-Control-Allow-Origin", "http://localhost:4200");
-			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-			res.header("Access-Control-Allow-Credentials", "true");
-			*/
 			next();
-		});
+		};
+
+		routes.use(allowCrossDomain);
 
 		routes.use(function (err, req, res, next) {
 			res.status(err.status || 500);

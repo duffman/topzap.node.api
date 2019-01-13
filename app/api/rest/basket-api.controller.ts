@@ -14,16 +14,16 @@ import { ISessionPullResult }     from '@zapModels/messages/session-pull-result'
 import { SessionPullResult }      from '@zapModels/messages/session-pull-result';
 import { ApiRoutes }              from '@api/api-routes';
 import { IApiController }         from "@api/api-controller";
-import { IBasketItem }            from "@zapModels/basket-item.model";
-import { BasketItem }             from "@zapModels/basket-item.model";
-import { IBasketModel }           from "@zapModels/basket.model";
-import { IVendorBasket }          from "@zapModels/basket.model";
-import { VendorBasketModel }      from "@zapModels/basket.model";
+import { IBasketItem }            from "@zapModels/basket/basket-item.model";
+import { BasketItem }             from "@zapModels/basket/basket-item.model";
+import { IBasketModel }           from "@zapModels/basket/basket.model";
+import { IVendorBasket }          from "@zapModels/basket/vendor-basket.model";
+import { VendorBasketModel }      from "@zapModels/basket/vendor-basket.model";
 import { IVendorOfferData }       from "@zapModels/zap-offer.model";
 import { ZapOfferResult }         from "@zapModels/zap-offer.model";
 import { IZapOfferResult }        from "@zapModels/zap-offer.model";
-import { IBasketAddResult }       from "@zapModels/basket-add-result";
-import { BasketAddResult }        from "@zapModels/basket-add-result";
+import { IBasketAddResult }       from "@zapModels/basket/basket-add-result";
+import { BasketAddResult }        from "@zapModels/basket/basket-add-result";
 import { ISessionBasket }         from "@zapModels/session-basket";
 import { SessionBasket }          from "@zapModels/session-basket";
 import { ZapBasketData }          from "@zapModels/zap-basket.model";
@@ -207,6 +207,7 @@ export class BasketApiController implements IApiController {
 
 			let resultItem = new BasketItem(
 				PRandNum.randomNum(),
+				1,
 				code,
 				vendor.vendorId,
 				vendor.title,

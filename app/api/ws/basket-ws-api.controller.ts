@@ -16,7 +16,7 @@ import { MessageType }            from '@igniter/messaging/message-types';
 import { BasketHandler }          from '@components/basket/basket.handler';
 import { SessionManager }         from '@components/session-manager';
 import { MessageFactory }         from '@igniter/messaging/message-factory';
-import { IBasketModel }           from '@zapModels/basket.model';
+import { IBasketModel }           from '@zapModels/basket/basket.model';
 import { ProductDb }              from '@db/product-db';
 import { GetOffersInit }          from '@zapModels/messages/get-offers-messages';
 import { IVendorOfferData }       from '@zapModels/zap-offer.model';
@@ -24,6 +24,8 @@ import { CachedOffersDb }         from '@db/cached-offers-db';
 import {Settings} from '@app/zappy.app.settings';
 import {PStrUtils} from '@putte/pstr-utils';
 import {BasketRemItemRes} from '@zapModels/basket/remove-item-result';
+import {ISessionBasket} from '@zapModels/session-basket';
+import {IVendorModel} from '@zapModels/vendor-model';
 
 export class BasketWsApiController implements IWSApiController {
 	productDb: ProductDb;
@@ -165,14 +167,70 @@ export class BasketWsApiController implements IWSApiController {
 		mess.replyTyped(ZapMessageType.BasketRemRes, new BasketRemItemRes(res, code));
 	}
 
+
+	/**
+	 * Retrieves
+	 * @param {string} sessId
+	 * @param {IMessage} mess
+	 */
 	private onBasketPull(sessId: string, mess: IMessage): void {
+		let scope = this;
+		let attachVendors = mess.data.attachVendors;
+
 		this.basketHandler.getExtSessionBasket(sessId).then(result => {
+			//mess.replyTyped(ZapMessageType.BasketPull, result);
+			return result;
+
+		}).then(res => {
+
+			/*
+			scope.productDb.getVendors().then(data => {
+
+			}).catch(err => {
+				Logger.logDebugErr("onBasketPull :: getVendors() ::", err);
+			});
+			*/
+
+			console.log(" ");
+			console.log(" ");
+			console.log(" ");
+			console.log("*** onBasketPull (BEFORE) :: message ::", res);
+
+			console.log(" ");
+
+			let message = MessageFactory.newIgniterMessage(MessageType.Action, ZapMessageType.BasketPull, res);
+
+			console.log("*** onBasketPull (AFTER) :: message ::", message.data);
+
+			console.log(" ");
+
+			console.log("*** onBasketPull :: message ::", message);
+
+			console.log(" ");
+			console.log(" ");
+			console.log(" ");
+
+			for (let vb of res.data) {
+				console.log("*** VENDOR DATA ::", vb);
+
+			}
+
+			this.wss.sendToSession(sessId, message);
+
+
+		}).catch(err => {
+			mess.error(err);
+		});
+
+
+/*		this.basketHandler.getExtSessionBasket(sessId).then(result => {
 			//mess.replyTyped(ZapMessageType.BasketPull, result);
 			let message = MessageFactory.newIgniterMessage(MessageType.Action, ZapMessageType.BasketPull, result);
 			this.wss.sendToSession(sessId, message);
 		}).catch(err => {
 			mess.error(err);
 		});
+*/
 	}
 
 	private onMessOffersInit(sessId: string): void {
