@@ -6,16 +6,16 @@
 
 import {BasketWsApiController} from '@api/ws/basket-ws-api.controller';
 import {ISessionBasket, SessionBasket} from '@zapModels/session-basket';
-import {GameBasketItem, IGameBasketItem} from '@zapModels/basket/basket-ext-item';
+import {GameBasketItem, IGameBasketItem} from '@zapModels/basket/basket-product-item';
 import {PRandNum} from '@putte/prand-num';
 import {ProductDb} from '@db/product-db';
-import {IGameProductData, IProductData} from '@zapModels/product.model';
 import {DbManager} from '@putteDb/database-manager';
 import {Logger} from '@cli/cli.logger';
 import {BasketHandler} from '@components/basket/basket.handler';
 import {BasketItem, IBasketItem} from '@zapModels/basket/basket-item.model';
 import {IVendorModel} from '@zapModels/vendor-model';
 import {IVendorBasket, VendorBasketModel} from '@zapModels/basket/vendor-basket.model';
+import {IGameProductData} from '@zapModels/game-product-model';
 
 
 let db = new DbManager();

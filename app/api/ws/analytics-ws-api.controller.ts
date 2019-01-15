@@ -6,15 +6,16 @@
 
 import { IWSApiController }       from '@api/api-controller';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
-import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
 import { SocketServer }           from '@igniter/coldmind/socket-io.server';
-import { IMessage }               from '@igniter/messaging/igniter-messages';
+import { IZynMessage }               from '@igniter/messaging/igniter-messages';
 import { AnalyticsDb }            from '@db/analytics-db';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { Logger }                 from '@cli/cli.logger';
+import {IZynSession} from '@igniter/coldmind/zyn-sio-session';
 
 export class AnalyticsWsApiController implements IWSApiController {
-	wss: ISocketServer;
+	wss: IZynSocketServer;
 	serviceClient: ClientSocket;
 	analyticsDb: AnalyticsDb;
 
@@ -28,29 +29,28 @@ export class AnalyticsWsApiController implements IWSApiController {
 		this.serviceClient.onMessage(this.onServiceMessage.bind(this));
 	}
 
-	private onServiceMessage(mess: IMessage): void {
+	private onServiceMessage(mess: IZynMessage): void {
 		let scope = this;
 	}
 
 	public attachWSS(wss: SocketServer): void {
 		this.wss = wss;
+		this.wss.onMessage(this.onMessageHandler.bind(this));
+	}
 
-		this.wss.onMessage((mess: IMessage) => {
-			let sessId = mess.socket.request.sessionID;
-
-			if (mess.id === ZapMessageType.BasketAdd) {
-				console.log("********* AnalyticsWsApiController :: ZapMessageType.BasketAdd");
-				this.onBasketAdd(sessId, mess);
-			}
-		});
+	private onMessageHandler(session: IZynSession, mess: IZynMessage) {
+		if (mess.id === ZapMessageType.BasketAdd) {
+			console.log("********* AnalyticsWsApiController :: ZapMessageType.BasketAdd");
+			this.onBasketAdd(session, mess);
+		}
 	}
 
 	/**
 	 * Intercept the basket add message to add new zap
 	 * @param {string} sessId
-	 * @param {IMessage} mess
+	 * @param {IZynMessage} mess
 	 */
-	public onBasketAdd(sessId: string, mess: IMessage): void {
+	public onBasketAdd(session: IZynSession, mess: IZynMessage): void {
 		Logger.logGreen("AnalyticsWsApiController :: onBasketAdd");
 		let code = mess.data.code;
 

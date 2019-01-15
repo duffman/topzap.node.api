@@ -6,15 +6,16 @@
 
 import { IWSApiController }       from '@api/api-controller';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
-import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
 import { SocketServer}            from '@igniter/coldmind/socket-io.server';
-import { IMessage }               from '@igniter/messaging/igniter-messages';
+import { IZynMessage }               from '@igniter/messaging/igniter-messages';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { ProductDb }              from '@db/product-db';
 import { MessageType }            from '@igniter/messaging/message-types';
+import {IZynSession} from '@igniter/coldmind/zyn-sio-session';
 
 export class ServiceWsApiController implements IWSApiController {
-	wss: ISocketServer;
+	wss: IZynSocketServer;
 	serviceClient: ClientSocket;
 	productDb: ProductDb;
 
@@ -27,16 +28,16 @@ export class ServiceWsApiController implements IWSApiController {
 		this.serviceClient.onMessage(this.onServiceMessage.bind(this));
 	}
 
-	private onServiceMessage(mess: IMessage): void {
+	private onServiceMessage(mess: IZynMessage): void {
 		let scope = this;
 	}
 
 	public attachWSS(wss: SocketServer): void {
 		this.wss = wss;
-		this.wss.onMessage(this.onUserMessage.bind(this));
+		this.wss.onMessage(this.onClientMessage.bind(this));
 	}
 
-	private onUserMessage(mess: IMessage): void {
+	private onClientMessage(session: IZynSession, mess: IZynMessage): void {
 		let scope = this;
 
 		if (mess.id === ZapMessageType.GetVendors) {

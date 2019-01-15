@@ -35,8 +35,8 @@ import { ProductApiController }   from '@api/rest/product-api.controller';
 import { IProductData }           from '@zapModels/product.model';
 import { PRandNum }               from '@putte/prand-num';
 import { PVarUtils }              from '@putte/pvar-utils';
-import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
-import { IMessage }               from '@igniter/messaging/igniter-messages';
+import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynMessage }               from '@igniter/messaging/igniter-messages';
 import { MessageType }            from '@igniter/messaging/message-types';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { PHttpClient }            from '@putte/inet/phttp-client';
@@ -530,12 +530,7 @@ export class BasketApiController implements IApiController {
 		}
 	}
 
-	public attachWSS(wss: ISocketServer): void {
-		wss.onMessage((message: IMessage) => {
-			if (message.id === ZapMessageType.BasketGet) {
-
-			}
-		});
+	public attachWSS(wss: IZynSocketServer): void {
 	}
 
 	public initRoutes(routes: Router): void  {

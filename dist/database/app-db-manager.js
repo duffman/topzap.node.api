@@ -1,3 +1,4 @@
+"use strict";
 /**
  * Patrik Forsberg ("CREATOR") CONFIDENTIAL
  * Unpublished Copyright (c) 2015-2018 Patrik Forsberg, All Rights Reserved.
@@ -14,16 +15,39 @@
  * LAWS AND INTERNATIONAL TREATIES.  THE RECEIPT OR POSSESSION OF  THIS SOURCE CODE AND/OR RELATED INFORMATION DOES NOT CONVEY OR IMPLY ANY RIGHTS
  * TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS, OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-
-import { Settings } from "@app/zappy.app.settings";
-
-export let DbEngine = require('knex')({
-	client: 'mysql',
-	debug: false,
-	connection: {
-		host : Settings.Database.dbHost,
-		user : Settings.Database.dbUser,
-		password : Settings.Database.dbPass,
-		database : Settings.Database.dbName
-	}
-});
+Object.defineProperty(exports, "__esModule", { value: true });
+const zappy_app_settings_1 = require("@app/zappy.app.settings");
+const database_manager_1 = require("@putteDb/database-manager");
+const cli_debug_yield_1 = require("@cli/cli.debug-yield");
+exports.ConnectionSettings = {
+    host: zappy_app_settings_1.Settings.Database.dbHost,
+    user: zappy_app_settings_1.Settings.Database.dbUser,
+    password: zappy_app_settings_1.Settings.Database.dbPass,
+    database: zappy_app_settings_1.Settings.Database.dbName
+};
+class AppDbManager {
+    static createConnection() {
+        let connection;
+        try {
+            connection = database_manager_1.DbManager.createConnection(exports.ConnectionSettings);
+        }
+        catch (err) {
+            cli_debug_yield_1.CliDebugYield.fatalError("Could not connect to Database!", new Error(err.message));
+        }
+        return connection;
+    }
+}
+exports.AppDbManager = AppDbManager;
+let settings = {
+    client: 'mysql',
+    debug: false,
+    connection: exports.ConnectionSettings
+    /*	connection: {
+            host : Settings.Database.dbHost,
+            user : Settings.Database.dbUser,
+            password : Settings.Database.dbPass,
+            database : Settings.Database.dbName
+        }
+    */
+};
+exports.DbEngine = require('knex')(settings);

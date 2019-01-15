@@ -7,12 +7,14 @@
 import { DbManager }              from "@putteDb/database-manager";
 import { SQLTableDataRow }        from "@putteDb/sql-table-data-row";
 import { Logger }                 from "@cli/cli.logger";
-import {IVendorModel, Vendor} from "@zapModels/vendor-model";
+import { IVendorModel }           from "@zapModels/vendor-model";
+import { Vendor }                 from "@zapModels/vendor-model";
 import { PlatformTypeParser }     from "@utils/platform-type-parser"
 import { PStrUtils }              from "@putte/pstr-utils";
 import { CliCommander }           from "@cli/cli.commander";
-import {GameProductData, IGameProductData, IProductData} from '@zapModels/product.model';
+import { IProductData }           from '@zapModels/product.model';
 import { ProductData }            from '@zapModels/product.model';
+import {GameProductData, IGameProductData} from '@zapModels/game-product-model';
 
 export class ProductDb {
 	db: DbManager;
@@ -66,7 +68,7 @@ export class ProductDb {
 			return this.db.dbQuery(sql).then((dbRes) => {
 				let dbRow = dbRes.safeGetFirstRow();
 
-				let model = createGameProductModel(dbRow);
+				let model: IGameProductData = createGameProductModel(dbRow);
 				let havePlatformAndTitle = !PStrUtils.isEmpty(model.platformName) && !PStrUtils.isEmpty(model.title);
 
 				//

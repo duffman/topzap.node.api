@@ -5,26 +5,26 @@
  */
 
 import { IWSApiController }       from '@api/api-controller';
-import {ISocketServer, SocketServer} from '@igniter/coldmind/socket-io.server';
+import {IZynSocketServer, SocketServer} from '@igniter/coldmind/socket-io.server';
 import {ClientSocket, IClientSocket} from '@igniter/coldmind/socket-io.client';
-import {IMessage} from '@igniter/messaging/igniter-messages';
+import {IZynMessage} from '@igniter/messaging/igniter-messages';
 import {ZapMessageType} from '@zapModels/messages/zap-message-types';
 
 export class ProductWsApiController implements IWSApiController {
 	debugMode: boolean;
-	wss: ISocketServer;
+	wss: IZynSocketServer;
 	serviceClient: IClientSocket;
 
-	public attachWSS(wss: ISocketServer): void {
+	public attachWSS(wss: IZynSocketServer): void {
 		this.wss = wss;
 		this.wss.onMessage(this.onUserMessage.bind(this));
 	}
 
 	/**
 	 * New Message from a User Session/Device
-	 * @param {IMessage} mess
+	 * @param {IZynMessage} mess
 	 */
-	private onUserMessage(mess: IMessage): void {
+	private onUserMessage(mess: IZynMessage): void {
 		if (mess.id === ZapMessageType.GetVendors) {
 		}
 	}
@@ -36,9 +36,9 @@ export class ProductWsApiController implements IWSApiController {
 
 	/**
 	 * New Message from Search Service
-	 * @param {IMessage} mess
+	 * @param {IZynMessage} mess
 	 */
-	private onServiceMessage(mess: IMessage): void {
+	private onServiceMessage(mess: IZynMessage): void {
 	}
 
 	public initRoutes(routes: any): void {

@@ -12,13 +12,14 @@ import { CliCommander }           from "@cli/cli.commander";
 import { IVendorOfferData }       from "@zapModels/zap-offer.model";
 import { IZapOfferResult }        from "@zapModels/zap-offer.model";
 import { SocketServer }           from '@igniter/coldmind/socket-io.server';
-import { IMessage }               from '@igniter/messaging/igniter-messages';
-import { IgniterMessage }         from '@igniter/messaging/igniter-messages';
+import { IZynMessage }               from '@igniter/messaging/igniter-messages';
+import { ZynMessage }         from '@igniter/messaging/igniter-messages';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { MessageType }            from '@igniter/messaging/message-types';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { CachedOffersDb }         from '@db/cached-offers-db';
 import { GetOffersInit }          from '@zapModels/messages/get-offers-messages';
+import {IZynSession} from '@igniter/coldmind/zyn-sio-session';
 
 export class SearchWsApiController implements IWSApiController {
 	wss: SocketServer;
@@ -54,18 +55,18 @@ export class SearchWsApiController implements IWSApiController {
 	 *
 	 */
 	private emitGetOffersInit(sessId: string, data: any): void {
-		let mess = new IgniterMessage(MessageType.Action, ZapMessageType.GetOffersInit, data, sessId);
-		this.wss.sendToSession(sessId, mess);
+		let mess = new ZynMessage(MessageType.Action, ZapMessageType.GetOffersInit, data, sessId);
+		this.wss.sendToSessionId(sessId, mess);
 	}
 
 	private emitVendorOffer(sessId: string, data: any): void {
-		let mess = new IgniterMessage(MessageType.Action, ZapMessageType.VendorOffer, data, sessId);
-		this.wss.sendToSession(sessId, mess);
+		let mess = new ZynMessage(MessageType.Action, ZapMessageType.VendorOffer, data, sessId);
+		this.wss.sendToSessionId(sessId, mess);
 	}
 
 	private emitOffersDone(sessId: string): void {
-		let mess = new IgniterMessage(MessageType.Action, ZapMessageType.GetOffersDone, {}, sessId);
-		this.wss.sendToSession(sessId, mess);
+		let mess = new ZynMessage(MessageType.Action, ZapMessageType.GetOffersDone, {}, sessId);
+		this.wss.sendToSessionId(sessId, mess);
 	}
 
 	public doGetOffers(code: string, sessId: string): void {
@@ -102,16 +103,15 @@ export class SearchWsApiController implements IWSApiController {
 
 	public attachWSS(wss: SocketServer): void {
 		this.wss = wss;
-		this.wss.onMessage(this.onUserMessage.bind(this));
+		this.wss.onMessage(this.onClientMessage.bind(this));
 	}
 
 	/**
 	 * New Message from a User Session/Device
-	 * @param {IMessage} mess
+	 * @param {IZynMessage} mess
 	 */
-	private onUserMessage(mess: IMessage): void {
+	private onClientMessage(session: IZynSession, mess: IZynMessage): void {
 		let scope = this;
-
 		let sessId =  mess.socket.request.sessionID;
 
 		if (this.debugMode) {
@@ -134,9 +134,9 @@ export class SearchWsApiController implements IWSApiController {
 
 	/**
 	 * New Message from Search Service
-	 * @param {IMessage} mess
+	 * @param {IZynMessage} mess
 	 */
-	private onServiceMessage(mess: IMessage): void {
+	private onServiceMessage(mess: IZynMessage): void {
 		let scope = this;
 
 		if (mess.id === ZapMessageType.GetOffersInit) {

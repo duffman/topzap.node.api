@@ -4,6 +4,11 @@
  * Proprietary and confidential
  */
 
-export interface ISessStorageEngine {
-	getData(sessId: string): any;
+import { ISessionEntry } from '@components/session-igniter/session-igniter-entry';
+
+export interface ISessionStorageEngine {
+	getData(sessId: string, autoCreate: boolean): Promise<ISessionEntry>;
+	getDataStr(sessId: string): Promise<string>;
+	setEntry(sessId: string, data: ISessionEntry): Promise<ISessionEntry>;
+	setData(sessId: string, data: object): Promise<ISessionEntry>;
 }

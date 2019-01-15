@@ -14,7 +14,7 @@ import { ZapResult }              from '@zapModels/zap-result';
 import { CliCommander }           from '@cli/cli.commander';
 import { ZynPostData }            from '@lib/zyn-express/zyn.post-data';
 import { ZynRemoteIp }            from '@lib/zyn-express/webserver/utils/zyn.remote-ip';
-import {ISocketServer} from '@igniter/coldmind/socket-io.server';
+import {IZynSocketServer} from '@igniter/coldmind/socket-io.server';
 import {ClientSocket} from '@igniter/coldmind/socket-io.client';
 import {GoogleCaptcha} from '@components/google-captcha';
 

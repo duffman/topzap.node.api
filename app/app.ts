@@ -27,14 +27,19 @@ import { IZynMiddleware }         from "@lib/zyn-express/zyn.middleware";
 import { BasketApiController }    from "@app/api/rest/basket-api.controller";
 import { DataDumpApiController }  from '@api/data-dump-api.controller';
 import { SocketServer }           from '@igniter/coldmind/socket-io.server';
-import { IMessage }               from '@igniter/messaging/igniter-messages';
+import { IZynMessage }               from '@igniter/messaging/igniter-messages';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { DataCacheController }    from '@api/data-cache-controller';
 import { BasketWsApiController }  from '@api/ws/basket-ws-api.controller';
 import { ServiceWsApiController } from '@api/ws/service-ws-api.controller';
 import { AnalyticsWsApiController } from '@api/ws/analytics-ws-api.controller';
 import { Settings }               from '@app/zappy.app.settings';
-import * as path from 'path';
+import * as path                  from 'path';
+import * as socketSession         from "socket.io-mysql-session";
+import { AppDbManager }           from '@db/app-db-manager';
+
+
+let mySqlStore = require("express-mysql-session")(session);
 
 export class ZapApp implements IZappyApp {
 	static developmentMode = false;
@@ -91,13 +96,23 @@ routes.use(session(sessionSettings));
 		cors({credentials: true, origin: true});
 		this.webApp.use(cors());
 
-		let http = require('http').Server(this.webApp);
-		let sio = require('socket.io')(http);
+		let http = require("http").Server(this.webApp);
+		let sio = require("socket.io")(http);
+
+		sio.use(new socketSession({
+			db: AppDbManager.createConnection()
+		}));
 
 		this.wsServer = new SocketServer(false);
 		this.wsServer.attachSocketIO(sio);
 
-		let sessionMiddleware = session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }});
+
+		let sessionSettings = {
+			secret: "TopCap",
+			cookie: { maxAge: 60000 }
+		};
+
+		let sessionMiddleware = session(sessionSettings);
 
 		sio.use(function(socket, next) {
 			sessionMiddleware(socket.request, socket.request.res, next);
@@ -105,9 +120,11 @@ routes.use(session(sessionSettings));
 
 		this.webApp.use(sessionMiddleware);
 
-		this.wsServer.onMessage((message: IMessage) => {
+		/*
+		this.wsServer.onMessage((message: IZynMessage) => {
 			console.log("WSSERVER :: Message ::", message.data);
 		});
+		*/
 
 		this.webApp.use(this.webRoutes);
 
@@ -247,7 +264,7 @@ routes.use(session(sessionSettings));
 			Logger.logError("Websocket Error ::", err);
 		});
 
-		wss.onMessage((mess: IMessage) => {
+		wss.onMessage((mess: IZynMessage) => {
 			Logger.logError("Websocket :: Message ::", mess);
 		});
 

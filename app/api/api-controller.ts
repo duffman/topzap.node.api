@@ -8,7 +8,7 @@
 
 import { Router }                 from "express";
 import { IZynMiddleware }         from "@zynIgniter/../../lib/zyn-express/zyn.middleware";
-import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
 import {ClientSocket} from '@igniter/coldmind/socket-io.client';
 
 /**
@@ -29,6 +29,6 @@ export interface IRestApiController extends IApiController {
 }
 
 export interface IWSApiController extends IApiController {
-	attachWSS(wss: ISocketServer): void;
+	attachWSS(wss: IZynSocketServer): void;
 	attachServiceClient(client: ClientSocket): void;
 }

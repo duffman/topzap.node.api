@@ -1,4 +1,24 @@
-'use strict';Object.defineProperty(exports,'__esModule',{value:true});class TestSwitch{constructor(){let allan='kalle';switch(allan){case'kalle':console.log('YEAS');break;case'uffe':console.log('Uffe');break;default:console.log('Lollo');break;}}}exports.TestSwitch=TestSwitch;let app=new TestSwitch();let allan=`
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+class TestSwitch {
+    constructor() {
+        let allan = "kalle";
+        switch (allan) {
+            case "kalle":
+                console.log("YEAS");
+                break;
+            case "uffe":
+                console.log("Uffe");
+                break;
+            default:
+                console.log("Lollo");
+                break;
+        }
+    }
+}
+exports.TestSwitch = TestSwitch;
+let app = new TestSwitch();
+let allan = `
 CD Audio
 Game not found
 Gameboy Advance
@@ -28,4 +48,5 @@ Wii
 Wii U
 Xbox
 Xbox 360
-Xbox One`;console.log(allan.toLowerCase());
+Xbox One`;
+console.log(allan.toLowerCase());

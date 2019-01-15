@@ -6,14 +6,14 @@
 
 import { IClientSocket }          from '@igniter/coldmind/socket-io.client';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
-import { IMessage }               from '@igniter/messaging/igniter-messages';
+import { IZynMessage }               from '@igniter/messaging/igniter-messages';
 import { MessageType }            from '@igniter/messaging/message-types';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { DbManager }              from '@putteDb/database-manager';
 import { ProductDb }              from '@db/product-db';
 
 export interface IPriceSearchService {
-	doPriceSearch(code: string): Promise<IMessage>;
+	doPriceSearch(code: string): Promise<IZynMessage>;
 }
 
 export class PriceSearchService implements IPriceSearchService {
@@ -23,7 +23,7 @@ export class PriceSearchService implements IPriceSearchService {
 	constructor(public serviceClient: IClientSocket) {
 	}
 
-	public doPriceSearch(code: string, sessId: string = null): Promise<IMessage> {
+	public doPriceSearch(code: string, sessId: string = null): Promise<IZynMessage> {
 		let messageData = {
 			code: code
 		};

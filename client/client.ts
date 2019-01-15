@@ -66,7 +66,7 @@ export class IgniterCLIClient {
 
 		data = data === null ? {} : data;
 		let mess = MessageFactory.newIgniterMessage(MessageType.Error, "id", data, tag);
-		//return this.sendToSession(sessId, mess);
+		//return this.sendToSessionId(sessId, mess);
 
 		console.log(chalk.green("OUT >>"));
 		console.log(chalk.green(JSON.stringify(mess)));

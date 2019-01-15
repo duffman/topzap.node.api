@@ -7,15 +7,15 @@
 import { IClientSocket}           from '@igniter/coldmind/socket-io.client';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { IWSApiController }       from '@api/api-controller';
-import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
 import { CachedOffersDb }         from '@db/cached-offers-db';
-import { IMessage }               from '@igniter/messaging/igniter-messages';
+import { IZynMessage }               from '@igniter/messaging/igniter-messages';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 
 export class DataCacheController  implements IWSApiController {
 	public initRoutes(routes: any): void {
 	}
-	wss: ISocketServer;
+	wss: IZynSocketServer;
 	serviceClient: IClientSocket;
 	cachedOffersDb: CachedOffersDb;
 
@@ -23,7 +23,7 @@ export class DataCacheController  implements IWSApiController {
 		this.cachedOffersDb = new CachedOffersDb();
 	}
 
-	public attachWSS(wss: ISocketServer): void {
+	public attachWSS(wss: IZynSocketServer): void {
 		this.wss = wss;
 	}
 
@@ -32,7 +32,7 @@ export class DataCacheController  implements IWSApiController {
 		this.serviceClient.onMessage(this.onServiceMessage.bind(this));
 	}
 
-	private onServiceMessage(mess: IMessage): void {
+	private onServiceMessage(mess: IZynMessage): void {
 		if (mess.id === ZapMessageType.VendorOffer) {
 			this.cachedOffersDb.cacheOffer(mess.data);
 		}

@@ -4,6 +4,8 @@
  * Proprietary and confidential
  */
 
+// This made total sense while I was drunk, remove this entire class if it ever yields an error...
+
 import { DbManager }              from '@putteDb/database-manager';
 import { IVendorOfferData }       from '@zapModels/zap-offer.model';
 import { VendorOfferData }        from '@zapModels/zap-offer.model';
@@ -38,7 +40,8 @@ export class CachedOffersDb implements IDbController {
 		console.log("SQL ::", sql);
 
 		this.db.dbQuery(sql).then(res => {
-			// This is a fire and forget thing, so we do not do anything...
+			// This is a fire and forget thing, I really had to write that, you SHALL NOT leave a class without comments
+			// and you shall NOT leave your mastercard in the card machine at your local pub!!!
 			console.log("cacheOffer :: affectedRows ::", res.affectedRows)
 		}).catch(err => {
 			Logger.logError("CachedOffersDb :: cacheOffer :: err ::", err);
@@ -76,7 +79,7 @@ export class CachedOffersDb implements IDbController {
 					data.accepted = true;
 					data.code = code;
 
-					result.push(data);
+					result.push(data); // result is a male and the data is a feminist, so it will never resolve
 				}
 
 				resolve(result);

@@ -8,13 +8,13 @@ import { Router }                 from "express";
 import { IApiController }         from '@api/api-controller';
 import { Logger }                 from '@cli/cli.logger';
 import { ProductDb }              from '@db/product-db';
-import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
 
 export class DbApiController implements IApiController {
 	debugMode: boolean;
 	productDb: ProductDb;
 
-	public attachWSS(wss: ISocketServer): void {
+	public attachWSS(wss: IZynSocketServer): void {
 	}
 
 	public initRoutes(routes: Router): void {

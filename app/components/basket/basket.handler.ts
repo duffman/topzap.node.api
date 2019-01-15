@@ -16,20 +16,22 @@ import { SessionManager }         from '@components/session-manager';
 import { PRandNum }               from '@putte/prand-num';
 import { ProductDb }              from '@db/product-db';
 import { BarcodeParser }          from '@zaplib/barcode-parser';
-import {IGameProductData, IProductData, ProductData} from '@zapModels/product.model';
+import { IProductData }           from '@zapModels/product.model';
 import { IVendorModel }           from '@zapModels/vendor-model';
+import { IGameProductData }       from '@zapModels/game-product-model';
+import { IZynSession }         from '@igniter/coldmind/zyn-sio-session';
+import { SessionKeys }            from '@app/types/session-keys';
 
 export class BasketHandler {
-	constructor(public sessManager: SessionManager) {
+	constructor() {}
+
+	public getSessionBasket(session: IZynSession): ISessionBasket {
+		return session.get<ISessionBasket>(SessionKeys.Basket);
 	}
 
-	public getSessionBasket(sessId: string): ISessionBasket {
-		return this.sessManager.getSessionBasket(sessId);
-	}
-
-	public addToBasket(sessId: string, offerData: IVendorOfferData): boolean {
+	public addToBasket(session: IZynSession, offerData: IVendorOfferData): boolean {
 		let scope = this;
-		let sessBasket = this.getSessionBasket(sessId);
+		let sessBasket = this.getSessionBasket(session);
 
 		if (!offerData.accepted) {
 			console.log("NOT ACCEPTED");
@@ -47,11 +49,11 @@ export class BasketHandler {
 			vendorOffer
 		);
 
-		return this.addToVendorBasket(sessId, resultItem);
+		return this.addToVendorBasket(session, resultItem);
 	}
 
-	public addToVendorBasket(sessId: string, item: IBasketItem): boolean {
-		let basket = this.getVendorBasket(sessId, item.vendorId);
+	public addToVendorBasket(session: IZynSession, item: IBasketItem): boolean {
+		let basket = this.getVendorBasket(session, item.vendorId);
 		let existingItem = basket.items.find(o => o.code === item.code);
 
 		if (typeof existingItem === "object") {
@@ -63,9 +65,9 @@ export class BasketHandler {
 		return true;
 	}
 
-	public getVendorBasket(sessId: string, vendorId: number): IBasketModel {
+	public getVendorBasket(session: IZynSession, vendorId: number): IBasketModel {
 		let result: IVendorBasket = null;
-		let sessBasket = this.getSessionBasket(sessId);
+		let sessBasket = this.getSessionBasket(session);
 
 		for (let i = 0; i < sessBasket.data.length; i++) {
 			let basket = sessBasket.data[i];
@@ -94,8 +96,8 @@ export class BasketHandler {
 		return total;
 	}
 
-	public getBestBasket(sessId: string): IBasketModel {
-		let vendorBaskets = this.getSessionBasket(sessId);
+	public getBestBasket(session: IZynSession): IBasketModel {
+		let vendorBaskets = this.getSessionBasket(session);
 		let bestTotal: number = 0;
 		let bestBaset: IBasketModel = null;
 
@@ -151,8 +153,8 @@ export class BasketHandler {
 		return result;
 	}
 
-	public getFullBasket(sessId: string): ISessionBasket {
-		let sessBasket = this.getSessionBasket(sessId);
+	public getFullBasket(session: IZynSession): ISessionBasket {
+		let sessBasket = this.getSessionBasket(session);
 		console.log("getFullBasket :: sessBasket ::", sessBasket);
 		return sessBasket;
 	}
@@ -174,7 +176,6 @@ export class BasketHandler {
 
 		return sessionBasket;
 	}
-
 
 	/**
 	 * Attaches
@@ -209,15 +210,15 @@ export class BasketHandler {
 			vendorBasket.totalValue = this.getBasketTotal(vendorBasket);
 		}
 	}
-d
+
 	/**
 	 * Get Session Basket with Vendor Data attached to each Vendor Basket
 	 * @param {string} sessId
 	 * @returns {Promise<ISessionBasket>}
 	 */
-	public getExtSessionBasket(sessId: string): Promise<ISessionBasket> {
+	public getExtSessionBasket(session: IZynSession): Promise<ISessionBasket> {
 		let scope = this;
-		let sessBasket = this.getFullBasket(sessId);
+		let sessBasket = this.getFullBasket(session);
 		let prodDb = new ProductDb();
 		let codes = this.getBasketCodes(sessBasket);
 
@@ -260,11 +261,9 @@ d
 				for (let item of vb.items) {
 					let prodData: IGameProductData = getProdData(item.code, sessBasket.productData);
 
-
 					item.thumbImage = prodData.thumbImage;
 					item.platformIcon = prodData.platformIcon;
 					item.releaseDate = prodData.releaseDate;
-
 
 					console.log("YAYAYAYAY prodData:::", prodData);
 				}
@@ -284,7 +283,6 @@ d
 
 				// HACK TO ATTACH PROD DATA TO IBasketItem decendant IGameBasketItem
 				attachProductInfoToItem(sessBasket);
-
 
 				//Hack
 				for (let vbasket of sessBasket.data) {
@@ -320,8 +318,8 @@ d
 		});
 	}
 
-	public showBasket(sessId: string): void {
-		let basket = this.sessManager.getSessionBasket(sessId);
+	public showBasket(session: IZynSession): void {
+		let basket = this.getSessionBasket(session);
 
 		for (const vendorData of basket.data) {
 			console.log("BASKET :: VENDOR ::", vendorData.vendorId);
@@ -338,12 +336,8 @@ d
 	 * @param {string} code
 	 * @returns {boolean}
 	 */
-	public removeProductByCode(sessId: string, code: string, basket: ISessionBasket = null): boolean {
+	public removeProductByCode(code: string, basket: ISessionBasket = null): boolean {
 		let result = false;
-
-		if (basket === null) {
-			basket =this.sessManager.getSessionBasket(sessId);
-		}
 
 		basket.productData = !(basket.productData) ? new Array<IProductData>() : basket.productData;
 
@@ -365,17 +359,10 @@ d
 	 * @param {string} code
 	 * @param {ISessionBasket} basket
 	 */
-	public removeItemByCode(sessId: string, code: string, basket: ISessionBasket = null): boolean {
+	public removeItemByCode(code: string, basket: ISessionBasket = null): boolean {
 		let result = false;
 
-		console.log("removeItemByCode ::", basket);
-
-		if (basket === null) {
-			basket = this.sessManager.getSessionBasket(sessId);
-		}
-
-		console.log("removeItemByCode ::", basket);
-		this.removeProductByCode(sessId, code, basket);
+		this.removeProductByCode(code, basket);
 		console.log("removeItemByCode :: removeProductByCode ::", basket);
 
 		for (const vendorData of basket.data) {

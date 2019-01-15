@@ -4,17 +4,17 @@
  * Proprietary and confidential
  */
 import { IWSApiController }       from '@api/api-controller';
-import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
-import {IMessage} from '@igniter/messaging/igniter-messages';
+import {IZynMessage} from '@igniter/messaging/igniter-messages';
 import {ZapMessageType} from '@zapModels/messages/zap-message-types';
 
 export class CaptchaWsApiController implements IWSApiController {
 	debugMode: boolean;
-	wss: ISocketServer;
+	wss: IZynSocketServer;
 	serviceClient: ClientSocket;
 
-	public attachWSS(wss: ISocketServer): void {
+	public attachWSS(wss: IZynSocketServer): void {
 		this.wss = wss;
 	}
 
@@ -23,7 +23,7 @@ export class CaptchaWsApiController implements IWSApiController {
 		this.serviceClient.onMessage(this.onServiceMessage.bind(this));
 	}
 
-	private onServiceMessage(mess: IMessage): void {
+	private onServiceMessage(mess: IZynMessage): void {
 		if (mess.id === ZapMessageType.GCaptchaVerify) {
 		}
 	}

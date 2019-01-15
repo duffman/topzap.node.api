@@ -16,7 +16,7 @@ import { MinerSessionModel }      from "@miner/miner-session-model";
 import { IDbResult }              from "@putteDb/db-result";
 import { Logger }                 from "@cli/cli.logger";
 import { IApiController }         from "@api/api-controller";
-import { ISocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
 
 export class MinerApiController implements IApiController {
 	minerDb: MinerDb;
@@ -25,7 +25,7 @@ export class MinerApiController implements IApiController {
 		this.minerDb = new MinerDb();
 	}
 
-	public attachWSS(wss: ISocketServer): void {
+	public attachWSS(wss: IZynSocketServer): void {
 	}
 
 	public initRoutes(routes: Router) {
