@@ -19,18 +19,39 @@ import { BarcodeParser }          from '@zaplib/barcode-parser';
 import { IProductData }           from '@zapModels/product.model';
 import { IVendorModel }           from '@zapModels/vendor-model';
 import { IGameProductData }       from '@zapModels/game-product-model';
-import { IZynSession }         from '@igniter/coldmind/zyn-sio-session';
+import { IZynSession }            from '@igniter/coldmind/zyn-socket-session';
 import { SessionKeys }            from '@app/types/session-keys';
+import {Logger} from '@cli/cli.logger';
 
 export class BasketHandler {
 	constructor() {}
 
 	public getSessionBasket(session: IZynSession): ISessionBasket {
-		return session.get<ISessionBasket>(SessionKeys.Basket);
+		console.log("Get Session Basket >>>> A:2");
+		//let res = session.getAs<ISessionBasket>(SessionKeys.Basket);
+
+		let res = session.get(SessionKeys.Basket) as ISessionBasket;
+
+		if (!res) {
+			res = this.ensureBasket(res);
+			session.set(SessionKeys.Basket, res);
+		}
+		console.log("Get Session Basket >>>> A:3", res);
+		return res;
+	}
+
+	public ensureBasket(sessionBasket: ISessionBasket): ISessionBasket {
+		if (!sessionBasket) {
+			sessionBasket = new SessionBasket();
+			console.log("ensureBasket >> We´re creating the basket ::", sessionBasket.data);
+		}
+
+		return sessionBasket;
 	}
 
 	public addToBasket(session: IZynSession, offerData: IVendorOfferData): boolean {
 		let scope = this;
+		console.log("Get Session Basket >>>> A:1");
 		let sessBasket = this.getSessionBasket(session);
 
 		if (!offerData.accepted) {
@@ -69,6 +90,13 @@ export class BasketHandler {
 		let result: IVendorBasket = null;
 		let sessBasket = this.getSessionBasket(session);
 
+		console.log("Get getVendorBasket ##### sessBasket.data", sessBasket.data);
+
+		if (!sessBasket.data) {
+			console.log("IT WAS UNASSIGNED!!!!!");
+			 sessBasket.data = new Array<IVendorBasket>(); //VendorBasketModel(vendorId);
+		}
+
 		for (let i = 0; i < sessBasket.data.length; i++) {
 			let basket = sessBasket.data[i];
 			if (basket.vendorId === vendorId) {
@@ -82,11 +110,15 @@ export class BasketHandler {
 			sessBasket.data.push(result);
 		}
 
+		console.log("WE`re FINE!!!!!");
+
 		return result;
 	}
 
 	public getBasketTotal(basket: IBasketModel): number {
 		let total = 0;
+
+		if (basket.items === null) return 0;
 
 		for (let index in basket.items) {
 			let item = basket.items[index];
@@ -136,6 +168,10 @@ export class BasketHandler {
 	public getBasketCodes(sessionBasket: ISessionBasket): string[] {
 		let result = new Array<string>();
 
+		if (!sessionBasket) {
+			return result;
+		}
+
 		function addBarcode(code: string): void {
 			code = BarcodeParser.prepEan13Code(code);
 
@@ -160,6 +196,8 @@ export class BasketHandler {
 	}
 
 	public sortSessionBasket(sessionBasket: ISessionBasket): ISessionBasket {
+		this.ensureBasket(sessionBasket);
+
 		for (const basket of sessionBasket.data) {
 			basket.totalValue = this.getBasketTotal(basket);
 		}
@@ -206,6 +244,11 @@ export class BasketHandler {
 	 * @param {ISessionBasket} sessBasket
 	 */
 	private calcBasketTotals(sessBasket: ISessionBasket): void {
+		if (!sessBasket.data) {
+			Logger.logError("calcBasketTotals :: no data");
+			return;
+		}
+
 		for (let vendorBasket of sessBasket.data) {
 			vendorBasket.totalValue = this.getBasketTotal(vendorBasket);
 		}
@@ -223,6 +266,7 @@ export class BasketHandler {
 		let codes = this.getBasketCodes(sessBasket);
 
 		function getProducts(): Promise<IProductData[]> {
+			console.log("getProducts >>>>>");
 			return new Promise((resolve, reject) => {
 				let codes = scope.getBasketCodes(sessBasket);
 				return prodDb.getProducts(codes).then(res => {
@@ -236,6 +280,7 @@ export class BasketHandler {
 		}
 
 		function getVendors(): Promise<IVendorModel[]> {
+			console.log("getVendors >>>>>");
 			return new Promise((resolve, reject) => {
 				return prodDb.getVendors().then(res => {
 					resolve(res)
@@ -246,6 +291,7 @@ export class BasketHandler {
 		}
 
 		function getProdData(code: string, prodData: IProductData[]): IProductData {
+			console.log("getProdData >>>>>");
 			let res: IProductData = null;
 			for (let prod of prodData) {
 				if (prod.code === code) {
@@ -257,6 +303,9 @@ export class BasketHandler {
 		}
 
 		function attachProductInfoToItem(sessBasket: ISessionBasket): void {
+			console.log("attachProductInfoToItem >>>>>");
+			scope.ensureBasket(sessBasket);
+
 			for (let vb of sessBasket.data) {
 				for (let item of vb.items) {
 					let prodData: IGameProductData = getProdData(item.code, sessBasket.productData);
@@ -314,6 +363,10 @@ export class BasketHandler {
 		return new Promise((resolve, reject) => {
 			getSessionBasket().then(() => {
 				resolve(sessBasket);
+			}).catch(err => {
+				Logger.logFatalError("getExtSessionBasket");
+				reject(err);
+
 			});
 		});
 	}

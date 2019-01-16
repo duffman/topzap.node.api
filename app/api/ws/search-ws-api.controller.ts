@@ -5,21 +5,18 @@
  */
 
 import { Logger }                 from "@cli/cli.logger";
-import { Settings }               from "@app/zappy.app.settings";
 import { IWSApiController }       from "@api/api-controller";
-import { PriceSearchService }     from "@core/price-search-engine/price.search-service";
 import { CliCommander }           from "@cli/cli.commander";
 import { IVendorOfferData }       from "@zapModels/zap-offer.model";
-import { IZapOfferResult }        from "@zapModels/zap-offer.model";
-import { SocketServer }           from '@igniter/coldmind/socket-io.server';
-import { IZynMessage }               from '@igniter/messaging/igniter-messages';
-import { ZynMessage }         from '@igniter/messaging/igniter-messages';
+import { SocketServer }           from '@igniter/coldmind/zyn-socket.server';
+import { IZynMessage }            from '@igniter/messaging/igniter-messages';
+import { ZynMessage }             from '@igniter/messaging/igniter-messages';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { MessageType }            from '@igniter/messaging/message-types';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { CachedOffersDb }         from '@db/cached-offers-db';
 import { GetOffersInit }          from '@zapModels/messages/get-offers-messages';
-import {IZynSession} from '@igniter/coldmind/zyn-sio-session';
+import { IZynSession }            from '@igniter/coldmind/zyn-socket-session';
 
 export class SearchWsApiController implements IWSApiController {
 	wss: SocketServer;
@@ -112,18 +109,22 @@ export class SearchWsApiController implements IWSApiController {
 	 */
 	private onClientMessage(session: IZynSession, mess: IZynMessage): void {
 		let scope = this;
-		let sessId =  mess.socket.request.sessionID;
 
-		if (this.debugMode) {
-			Logger.logYellow("WSSERVER :: Message ::", mess.data);
-			Logger.logYellow("WSSERVER :: Session ID ::", sessId);
-		}
+		try {
+			if (this.debugMode) {
+				Logger.logYellow("WSSERVER :: Message ::", mess.data);
+				Logger.logYellow("WSSERVER :: Session ID ::", session.sessionId);
+			}
 
-		if (mess.id === ZapMessageType.GetOffers) {
-			let code = mess.data.code;
-			if (this.debugMode) Logger.logYellow("GET OFFERS :: CODE ::", code);
-			this.doGetOffers(code, sessId);
-			mess.ack();
+			if (mess.id === ZapMessageType.GetOffers) {
+				let code = mess.data.code;
+				if (this.debugMode) Logger.logYellow("GET OFFERS :: CODE ::", code);
+				this.doGetOffers(code, session.sessionId);
+				mess.ack();
+			}
+
+		} catch (err) {
+			Logger.logFatalError("onClientMessage")
 		}
 	}
 
@@ -151,90 +152,11 @@ export class SearchWsApiController implements IWSApiController {
 			scope.emitOffersDone(mess.tag);
 		}
 	}
-
-	/*
-	public initRoutes(routes: Router): void {
-		let scope = this;
-
-		routes.get("/pt/:code", (req: Request, resp: Response) => {
-			let code = req.params.code;
-
-			console.log("Test Test ::", code);
-
-			scope.searchService.doPriceSearch(code).then(res => {
-				console.log("doPriceSearch -> resolved");
-				resp.json(res);
-			}).catch(err => {
-				resp.json(new Error("Error looking up price!"));
-			});
-		});
-
-		//
-		// Get Product by Barcode
-		//
-		let extendedProdData = true;
-
-		//
-		// Get Zap Result by POST barcode
-		//
-		routes.post("/code", (req: Request, resp: Response) => {
-			console.log("CODE FROM NR 1 ::", req.body.code);
-			Logger.spit();
-			Logger.spit();
-			console.log("REQUEST BODY ::", req.body);
-			Logger.spit();
-			Logger.spit();
-
-			let data = req.body;
-			let reqCode = data.code;
-
-			let fullResult = !data.cache;
-			let debug = data.debug;
-
-			console.log("Given Barcode:", data);
-			//reqCode = BarcodeParser.prepEan13Code(reqCode, true);
-			Logger.logGreen("Prepared Barcode:", reqCode);
-
-			scope.callSearchService(reqCode).then((searchRes) => {
-				resp.setHeader('Content-Type', 'application/json');
-				resp.send(searchRes);
-
-				//this.reqSession = req.session;
-				//let addResult = this.basketController.addToBasket(reqCode, searchRes);
-				//resp.send(searchRes);
-
-
-			}).catch((err) => {
-				ApiControllerUtils.internalError(resp);
-				Logger.logError("SearchWsApiController :: error ::", err);
-			})
-		});
-	}
-	*/
-
-	/*
-	public callSearchService(code: string): Promise<IZapOfferResult> {
-		Logger.logGreen("callSearchService");
-		let url = Settings.PriceServiceApi.Endpoint;
-
-		return new Promise((resolve, reject) => {
-			return this.searchService.doPriceSearch(code).then((searchResult) => {
-				console.log("callSearchService :: doSearch ::", searchResult);
-
-				// let result = ZapOfferResult.toZapRes(searchResult);
-
-				resolve(null);
-
-			}).catch((err) => {
-				console.log("callSearchService :: error ::", err);
-				resolve(err);
-			})
-		});
-	}
-	*/
 }
 
+
 if (CliCommander.debug()) {
+	console.log("OUTSIDE CODE EXECUTING");
 	let app = new SearchWsApiController();
 	//app.doDebugSearch(null, null);
 }

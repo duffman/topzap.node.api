@@ -5,10 +5,10 @@
  */
 
 import { IClientSocket }          from '@igniter/coldmind/socket-io.client';
-import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
-import {ZapMessageType} from '@zapModels/messages/zap-message-types';
-import {MessageType} from '@igniter/messaging/message-types';
-import {ZynMessage} from '@igniter/messaging/igniter-messages';
+import { IZynSocketServer }       from '@igniter/coldmind/zyn-socket.server';
+import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
+import { MessageType }            from '@igniter/messaging/message-types';
+import { ZynMessage }             from '@igniter/messaging/igniter-messages';
 
 export class PriceOfferManager {
 	constructor(public serviceClient: IClientSocket,

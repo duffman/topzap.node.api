@@ -35,7 +35,7 @@ import { ProductApiController }   from '@api/rest/product-api.controller';
 import { IProductData }           from '@zapModels/product.model';
 import { PRandNum }               from '@putte/prand-num';
 import { PVarUtils }              from '@putte/pvar-utils';
-import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/zyn-socket.server';
 import { IZynMessage }               from '@igniter/messaging/igniter-messages';
 import { MessageType }            from '@igniter/messaging/message-types';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
@@ -364,7 +364,7 @@ export class BasketApiController implements IApiController {
 
 		this.setSessionBasket(basket);
 
-		// Call the get session basket in order to return
+		// Call the getAs session basket in order to return
 		// the current basket
 		this.apiPullSession(req, resp);
 
@@ -488,7 +488,7 @@ export class BasketApiController implements IApiController {
 			console.log("¤ bestBasket ::", bestBasket);
 
 			// Emulate the add where we only send the best basket
-			// We might get some unwanted product info if a lower bid basket have product that
+			// We might getAs some unwanted product info if a lower bid basket have product that
 			// the best basket don´t have, but what the hell...
 			let sessionPullResult = new SessionPullResult(true);
 

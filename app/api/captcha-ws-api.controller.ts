@@ -4,7 +4,7 @@
  * Proprietary and confidential
  */
 import { IWSApiController }       from '@api/api-controller';
-import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/zyn-socket.server';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import {IZynMessage} from '@igniter/messaging/igniter-messages';
 import {ZapMessageType} from '@zapModels/messages/zap-message-types';

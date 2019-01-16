@@ -53,6 +53,7 @@ export class Main implements IColdmindNode {
 let main = new Main();
 
 if (CliCommander.first("debug")) {
+	console.log("OUTSIDE CODE EXECUTING");
 	main.debugMode = true;
 }
 

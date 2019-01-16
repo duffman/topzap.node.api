@@ -6,13 +6,13 @@
 
 import { IWSApiController }       from '@api/api-controller';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
-import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
-import { SocketServer }           from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/zyn-socket.server';
+import { SocketServer }           from '@igniter/coldmind/zyn-socket.server';
 import { IZynMessage }               from '@igniter/messaging/igniter-messages';
 import { AnalyticsDb }            from '@db/analytics-db';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { Logger }                 from '@cli/cli.logger';
-import {IZynSession} from '@igniter/coldmind/zyn-sio-session';
+import {IZynSession} from '@igniter/coldmind/zyn-socket-session';
 
 export class AnalyticsWsApiController implements IWSApiController {
 	wss: IZynSocketServer;
@@ -35,10 +35,14 @@ export class AnalyticsWsApiController implements IWSApiController {
 
 	public attachWSS(wss: SocketServer): void {
 		this.wss = wss;
-		this.wss.onMessage(this.onMessageHandler.bind(this));
+		this.wss.onMessage(this.onClientMessage.bind(this));
 	}
 
-	private onMessageHandler(session: IZynSession, mess: IZynMessage) {
+	/**
+	 * New Message from a User Session/Device
+	 * @param {IZynMessage} mess
+	 */
+	private onClientMessage(session: IZynSession, mess: IZynMessage): void {
 		if (mess.id === ZapMessageType.BasketAdd) {
 			console.log("********* AnalyticsWsApiController :: ZapMessageType.BasketAdd");
 			this.onBasketAdd(session, mess);

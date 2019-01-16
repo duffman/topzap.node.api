@@ -8,7 +8,7 @@ import { Router }                 from "express";
 import { IApiController }         from '@api/api-controller';
 import { Logger }                 from '@cli/cli.logger';
 import { ProductDb }              from '@db/product-db';
-import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/zyn-socket.server';
 
 export class DbApiController implements IApiController {
 	debugMode: boolean;

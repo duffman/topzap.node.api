@@ -5,12 +5,12 @@
  */
 
 import { IWSApiController }       from '@api/api-controller';
-import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }       from '@igniter/coldmind/zyn-socket.server';
 import { Router }                 from 'express';
 import { Logger }                 from '@cli/cli.logger';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
-import { IZynMessage }               from '@igniter/messaging/igniter-messages';
-import { ZynMessage }         from '@igniter/messaging/igniter-messages';
+import { IZynMessage }            from '@igniter/messaging/igniter-messages';
+import { ZynMessage }             from '@igniter/messaging/igniter-messages';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { MessageType }            from '@igniter/messaging/message-types';
 import { BasketHandler }          from '@components/basket/basket.handler';
@@ -24,9 +24,9 @@ import { CachedOffersDb }         from '@db/cached-offers-db';
 import { Settings }               from '@app/zappy.app.settings';
 import { PStrUtils }              from '@putte/pstr-utils';
 import { BasketRemItemRes }       from '@zapModels/basket/remove-item-result';
-import { IZynSession }         from '@igniter/coldmind/zyn-sio-session';
+import { IZynSession }            from '@igniter/coldmind/zyn-socket-session';
 import { SessionKeys }            from '@app/types/session-keys';
-import {ISessionBasket} from '@zapModels/session-basket';
+import {ISessionBasket}           from '@zapModels/session-basket';
 
 export class BasketWsApiController implements IWSApiController {
 	productDb: ProductDb;
@@ -76,7 +76,9 @@ export class BasketWsApiController implements IWSApiController {
 	}
 
 	private emitVendorOffer(sessId: string, data: any): void {
+		Logger.logYellow("¤¤¤¤ emitVendorOffer");
 		let mess = new ZynMessage(MessageType.Action, ZapMessageType.VendorOffer, data, sessId);
+		Logger.logYellow("¤¤¤¤ emitVendorOffer :: mess ::", mess);
 		this.wss.sendToSessionId(sessId, mess);
 	}
 
@@ -86,19 +88,23 @@ export class BasketWsApiController implements IWSApiController {
 	}
 
 	/**
-	 * Attempt to get cached offers
+	 * Attempt to getAs cached offers
 	 * @param {string} code
 	 * @param {string} sessId
 	 * @param {boolean} fallbalOnSearch
 	 */
 	private getCachedOffers(code: string, sessId: string, fallbalOnSearch: boolean = true): void {
 		let scope = this;
-		console.log("doGetOffers :: " + code + " :: " + sessId);
+		console.log("########### doGetOffers :: " + code + " :: " + sessId);
 
 		this.cachedOffersDb.getCachedOffers(code).then(res => {
+			console.log("########### doGetOffers :: >> 1");
+
 			return res;
 		}).catch(err => {
-			console.log("BasketWsApiController :: doGetOffers :: Catch ::", err);
+			console.log("########### doGetOffers :: >> 2");
+
+			Logger.logFatalError("BasketWsApiController :: doGetOffers :: Catch ::", err);
 			return null;
 
 		}).then((cachedRes: Array<IVendorOfferData>) => {
@@ -106,7 +112,12 @@ export class BasketWsApiController implements IWSApiController {
 			// Simulate Messages Sent using a regular lookup
 			//
 			if (cachedRes) {
+				console.log("########### doGetOffers :: cachedRes");
+
 				scope.emitGetOffersInit(sessId, new GetOffersInit(cachedRes.length));
+
+				console.log("########### doGetOffers :: after : emitGetOffersInit");
+
 				for (const entry of cachedRes) {
 					scope.onMessVendorOffer(sessId, entry);
 					//scope.emitVendorOffer(sessId, entry);
@@ -122,26 +133,38 @@ export class BasketWsApiController implements IWSApiController {
 		});
 	}
 
-	public doGetOffers(sessId: string, mess: IZynMessage): void {
+	public doGetOffers(session: IZynSession, mess: IZynMessage): void {
 		let code = mess.data.code;
+		console.log("### doGetOffers ::", code);
 
 		if (!PStrUtils.isNumeric(code)) {
 			Logger.logDebugErr("BasketWsApiController :: doGetOffers ::", code);
-			this.wss.sendError(sessId, ZapMessageType.ErrInvalidCode, {}, mess.tag);
+			this.wss.sessionError(session, ZapMessageType.ErrInvalidCode, {}, mess.tag);
 			return;
 		}
 
 		if (Settings.Caching.UseCachedOffers) {
-			this.getCachedOffers(code, sessId);
+			console.log("### doGetOffers ::", "UseCachedOffers");
+			this.getCachedOffers(code, session.sessionId);
 		} else {
-			this.emitGetOffersMessage(code, sessId); // Call price service
+			console.log("### doGetOffers ::", "SEARCH SERVICE");
+			this.emitGetOffersMessage(code, session.sessionId); // Call price service
 		}
 	}
 
-	private onBasketAdd(sessId: string, mess: IZynMessage): void {
-		this.doGetOffers(sessId, mess);
+	private onBasketAdd(session: IZynSession, mess: IZynMessage): void {
+		let basket = session.getAs<ISessionBasket>(SessionKeys.Basket);
+		console.log(">>>>> onBasketGet", basket);
+
+		if (!basket) {
+			console.log(">>>>> handleMessage ::", "Clearing Session");
+			session.clear();
+		}
+
+		console.log("### onBasketAdd");
+		this.doGetOffers(session, mess);
 		//this.emitGetOffersMessage(mess.data.code, sessId);
-		mess.ack();
+		//mess.ack();
 	}
 
 	public attachServiceClient(client: ClientSocket): void {
@@ -170,9 +193,9 @@ export class BasketWsApiController implements IWSApiController {
 	 */
 	private onBasketRem(session: IZynSession, mess: IZynMessage): void {
 		let code = mess.data.code;
-		let basket = session.get<ISessionBasket>(SessionKeys.Basket);
+		let basket = session.getAs<ISessionBasket>(SessionKeys.Basket);
 		let res = this.basketHandler.removeItemByCode(code, basket);
-		session.setValue(SessionKeys.Basket, basket);
+		session.set(SessionKeys.Basket, basket);
 
 		Logger.logYellow("REMOVE FROM BASKET :: CODE ::", code);
 		mess.replyTyped(ZapMessageType.BasketRemRes, new BasketRemItemRes(res, code));
@@ -215,29 +238,33 @@ export class BasketWsApiController implements IWSApiController {
 		});
 	}
 
-	private onMessOffersInit(session: IZynSession): void {
-		console.log("BasketWsApiController :: onMessOffersInit ::", session.id);
+	private onMessOffersInit(sessId: string): void {
+		console.log("BasketWsApiController :: onMessOffersInit ::", sessId);
 	}
 
-	private onMessVendorOffer(socketId: string, data: any): void {
+	private onMessVendorOffer(sessId: string, data: any): void {
 		//basket = this.getSessionBasket(sessId);
 		//session.setValue(SessionKeys.Basket, basket);
 
-		this.wss. findSocket(socketId)
-		console.log("BasketWsApiController :: onMessVendorOffer :: " +  socketId + " ::", data);
+		let session = this.wss.findSocketBySessionId(sessId);
+		console.log("BasketWsApiController :: onMessVendorOffer :: " +  sessId + " ::", data);
 		this.basketHandler.addToBasket(session, data);
 
 		let bestBasket: IBasketModel = this.basketHandler.getBestBasket(session);
 		this.basketHandler.showBasket(session);
 
 		let message = MessageFactory.newIgniterMessage(MessageType.Action, ZapMessageType.BasketAddRes, bestBasket);
-		this.wss.sendToSessionId(me, message);
+		this.wss.sendToSession(session, message);
 	}
 
 	private onMessOffersDone(sessId: string): void {
 		console.log("BasketWsApiController :: onMessOffersDone ::", sessId);
 	}
 
+	/**
+	 * Message from one of the Price Services
+	 * @param {IZynMessage} mess
+	 */
 	private onServiceMessage(mess: IZynMessage): void {
 		let scope = this;
 

@@ -5,5 +5,6 @@
  */
 
 export module SessionKeys {
+	export const Master = 'topzap';
 	export const Basket = 'basket';
 }

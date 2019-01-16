@@ -8,7 +8,7 @@
 
 import { Router }                 from "express";
 import { IZynMiddleware }         from "@zynIgniter/../../lib/zyn-express/zyn.middleware";
-import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/zyn-socket.server';
 import {ClientSocket} from '@igniter/coldmind/socket-io.client';
 
 /**

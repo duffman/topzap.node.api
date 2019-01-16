@@ -5,10 +5,11 @@
  */
 
 import { IWSApiController }       from '@api/api-controller';
-import {IZynSocketServer, SocketServer} from '@igniter/coldmind/socket-io.server';
+import {IZynSocketServer, SocketServer} from '@igniter/coldmind/zyn-socket.server';
 import {ClientSocket, IClientSocket} from '@igniter/coldmind/socket-io.client';
 import {IZynMessage} from '@igniter/messaging/igniter-messages';
 import {ZapMessageType} from '@zapModels/messages/zap-message-types';
+import {IZynSession} from '@igniter/coldmind/zyn-socket-session';
 
 export class ProductWsApiController implements IWSApiController {
 	debugMode: boolean;
@@ -17,14 +18,14 @@ export class ProductWsApiController implements IWSApiController {
 
 	public attachWSS(wss: IZynSocketServer): void {
 		this.wss = wss;
-		this.wss.onMessage(this.onUserMessage.bind(this));
+		this.wss.onMessage(this.onClientMessage.bind(this));
 	}
 
 	/**
 	 * New Message from a User Session/Device
 	 * @param {IZynMessage} mess
 	 */
-	private onUserMessage(mess: IZynMessage): void {
+	private onClientMessage(session: IZynSession, mess: IZynMessage): void {
 		if (mess.id === ZapMessageType.GetVendors) {
 		}
 	}

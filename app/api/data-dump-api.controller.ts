@@ -8,7 +8,7 @@ import { Router }                 from "express";
 import { Request }                from "express";
 import { Response }               from "express";
 import { IApiController }         from '@api/api-controller';
-import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/zyn-socket.server';
 
 export class DataDumpApiController implements IApiController {
 	constructor(public debugMode: boolean = false) {

@@ -26,7 +26,7 @@ import { ProductApiController }   from "@api/rest/product-api.controller";
 import { IZynMiddleware }         from "@lib/zyn-express/zyn.middleware";
 import { BasketApiController }    from "@app/api/rest/basket-api.controller";
 import { DataDumpApiController }  from '@api/data-dump-api.controller';
-import { SocketServer }           from '@igniter/coldmind/socket-io.server';
+import { SocketServer }           from '@igniter/coldmind/zyn-socket.server';
 import { IZynMessage }               from '@igniter/messaging/igniter-messages';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { DataCacheController }    from '@api/data-cache-controller';
@@ -105,7 +105,6 @@ routes.use(session(sessionSettings));
 
 		this.wsServer = new SocketServer(false);
 		this.wsServer.attachSocketIO(sio);
-
 
 		let sessionSettings = {
 			secret: "TopCap",
@@ -382,6 +381,7 @@ routes.use(session(sessionSettings));
 }
 
 if (CliCommander.debug()) {
+	console.log("OUTSIDE CODE EXECUTING");
 	let minerApi = true;
 	let app = new ZapApp(minerApi);
 }

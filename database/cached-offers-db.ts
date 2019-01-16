@@ -49,6 +49,8 @@ export class CachedOffersDb implements IDbController {
 	}
 
 	public getCachedOffers(code: string): Promise<IVendorOfferData[]> {
+		console.log("########### doGetOffers :: >> getCachedOffers");
+
 		//code='${code}'
 		let sql = `
 			SELECT

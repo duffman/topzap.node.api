@@ -72,7 +72,6 @@ export class IgniterCLIClient {
 		console.log(chalk.green(JSON.stringify(mess)));
 		console.log(" ");
 
-
 		socket.emit("message", mess);
 	}
 

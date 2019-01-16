@@ -168,6 +168,7 @@ export class ProductDb {
 }
 
 if (CliCommander.debug()) {
+	console.log("OUTSIDE CODE EXECUTING");
 	console.log("DEBUG!");
 	let debug = new ProductDb();
 	debug.getGameData("0819338020068").then((res) => {

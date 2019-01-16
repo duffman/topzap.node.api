@@ -115,7 +115,7 @@ let randomCodes = getRandomCodes().then(res => {
 }).then(data => {
 
 	return prodDb.getVendors().then(vendors => {
-		let bh = new BasketHandler(null);
+		let bh = new BasketHandler();
 
 		//for (let vendor of vendors) {}
 

@@ -6,13 +6,13 @@
 
 import { IWSApiController }       from '@api/api-controller';
 import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
-import { IZynSocketServer }          from '@igniter/coldmind/socket-io.server';
-import { SocketServer}            from '@igniter/coldmind/socket-io.server';
+import { IZynSocketServer }          from '@igniter/coldmind/zyn-socket.server';
+import { SocketServer}            from '@igniter/coldmind/zyn-socket.server';
 import { IZynMessage }               from '@igniter/messaging/igniter-messages';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { ProductDb }              from '@db/product-db';
 import { MessageType }            from '@igniter/messaging/message-types';
-import {IZynSession} from '@igniter/coldmind/zyn-sio-session';
+import {IZynSession } from '@igniter/coldmind/zyn-socket-session';
 
 export class ServiceWsApiController implements IWSApiController {
 	wss: IZynSocketServer;
@@ -37,6 +37,10 @@ export class ServiceWsApiController implements IWSApiController {
 		this.wss.onMessage(this.onClientMessage.bind(this));
 	}
 
+	/**
+	 * New Message from a User Session/Device
+	 * @param {IZynMessage} mess
+	 */
 	private onClientMessage(session: IZynSession, mess: IZynMessage): void {
 		let scope = this;
 
