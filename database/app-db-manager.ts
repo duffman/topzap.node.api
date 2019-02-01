@@ -17,7 +17,7 @@
 
 import { Settings }               from "@app/zappy.app.settings";
 import { Connection }             from 'mysql';
-import {DbManager, IConnectionSettings} from '@putteDb/database-manager';
+import {DbManager, IConnectionSettings} from '@putteDb/db-kernel';
 import {CliDebugYield} from '@cli/cli.debug-yield';
 
 export let ConnectionSettings = {
@@ -45,7 +45,7 @@ let settings = {
 	client: 'mysql',
 	debug: false,
 	connection: ConnectionSettings
-/*	connection: {
+/*	conn: {
 		host : Settings.Database.dbHost,
 		user : Settings.Database.dbUser,
 		password : Settings.Database.dbPass,

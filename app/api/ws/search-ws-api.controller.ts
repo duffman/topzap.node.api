@@ -33,16 +33,16 @@ export class SearchWsApiController implements IWSApiController {
 	/**
 	 * Emit Search Message through Search Service
 	 * @param {string} code
-	 * @param {string} sessId
+	 * @param {string} socketId
 	 */
-	private emitGetOffersMessage(code: string, sessId: string): void {
+	private emitGetOffersMessage(code: string, socketId: string): void {
 		let scope = this;
 
 		let messageData = {
 			code: code
 		};
 
-		this.serviceClient.sendMessage(MessageType.Action, ZapMessageType.GetOffers, messageData, sessId);
+		this.serviceClient.sendMessage(MessageType.Action, ZapMessageType.GetOffers, messageData, socketId);
 		this.serviceClient.onMessage(this.onServiceMessage.bind(this));
 	}
 
@@ -51,24 +51,24 @@ export class SearchWsApiController implements IWSApiController {
 	 *  Emit Messages To User Session
 	 *
 	 */
-	private emitGetOffersInit(sessId: string, data: any): void {
-		let mess = new ZynMessage(MessageType.Action, ZapMessageType.GetOffersInit, data, sessId);
-		this.wss.sendToSessionId(sessId, mess);
+	private emitGetOffersInit(socketId: string, data: any): void {
+		let mess = new ZynMessage(MessageType.Action, ZapMessageType.GetOffersInit, data, socketId);
+		this.wss.sendMessageToSocket(socketId, mess);
 	}
 
-	private emitVendorOffer(sessId: string, data: any): void {
-		let mess = new ZynMessage(MessageType.Action, ZapMessageType.VendorOffer, data, sessId);
-		this.wss.sendToSessionId(sessId, mess);
+	private emitVendorOffer(socketId: string, data: any): void {
+		let mess = new ZynMessage(MessageType.Action, ZapMessageType.VendorOffer, data, socketId);
+		this.wss.sendMessageToSocket(socketId, mess);
 	}
 
-	private emitOffersDone(sessId: string): void {
-		let mess = new ZynMessage(MessageType.Action, ZapMessageType.GetOffersDone, {}, sessId);
-		this.wss.sendToSessionId(sessId, mess);
+	private emitOffersDone(socketId: string): void {
+		let mess = new ZynMessage(MessageType.Action, ZapMessageType.GetOffersDone, {}, socketId);
+		this.wss.sendMessageToSocket(socketId, mess);
 	}
 
-	public doGetOffers(code: string, sessId: string): void {
+	public doGetOffers(code: string, socketId: string): void {
 		let scope = this;
-		console.log("doGetOffers :: " + code + " :: " + sessId);
+		console.log("doGetOffers :: " + code + " :: " + socketId);
 
 		this.cachedOffersDb.getCachedOffers(code).then(res => {
 			return res;
@@ -83,17 +83,17 @@ export class SearchWsApiController implements IWSApiController {
 			// Simulate Messages Sent using a regular lookup
 			//
 			if (cachedRes) {
-				scope.emitGetOffersInit(sessId, new GetOffersInit(cachedRes.length));
+				scope.emitGetOffersInit(socketId, new GetOffersInit(cachedRes.length));
 				for (const entry of cachedRes) {
-					scope.emitVendorOffer(sessId, entry);
+					scope.emitVendorOffer(socketId, entry);
 				}
-				scope.emitOffersDone(sessId)
+				scope.emitOffersDone(socketId)
 
 			//
 			// Lookup offers through the price service
 			//
 			} else {
-				scope.emitGetOffersMessage(code, sessId); // Call price service
+				scope.emitGetOffersMessage(code, socketId); // Call price service
 			}
 		});
 	}
@@ -120,11 +120,10 @@ export class SearchWsApiController implements IWSApiController {
 				let code = mess.data.code;
 				if (this.debugMode) Logger.logYellow("GET OFFERS :: CODE ::", code);
 				this.doGetOffers(code, session.sessionId);
-				mess.ack();
 			}
 
 		} catch (err) {
-			Logger.logFatalError("onClientMessage")
+			Logger.logFatalError("onClientMessage")			
 		}
 	}
 
@@ -153,7 +152,6 @@ export class SearchWsApiController implements IWSApiController {
 		}
 	}
 }
-
 
 if (CliCommander.debug()) {
 	console.log("OUTSIDE CODE EXECUTING");

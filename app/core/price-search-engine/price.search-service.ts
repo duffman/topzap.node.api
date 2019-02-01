@@ -9,7 +9,7 @@ import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { IZynMessage }               from '@igniter/messaging/igniter-messages';
 import { MessageType }            from '@igniter/messaging/message-types';
 import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
-import { DbManager }              from '@putteDb/database-manager';
+import { DbManager }              from '@putteDb/db-kernel';
 import { ProductDb }              from '@db/product-db';
 
 export interface IPriceSearchService {

@@ -11,7 +11,7 @@ UPDATE `price_miner_queue` SET processed_when = NULL WHERE `session_id` = 30 AND
 
  */
 
-import { DbManager }              from "@putteDb/database-manager";
+import { DbManager }              from "@putteDb/db-kernel";
 import { IDbResult }              from "@putteDb/db-result";
 import { DynSQL }                 from "@putteDb/dynsql/dynsql";
 import SqlString                  from "@putteDb/dynsql/sql-string";
@@ -76,7 +76,7 @@ export class MinerDb {
 			return barcode
 		}
 
-		let sql = `SELECT * FROM price_miner_queue WHERE session_id=${sessionId} AND processed_when IS NULL ORDER BY RAND()`;  //SELECT * FROM price_miner_queue vendor_id=${sessionId} AND processed_when IS NULL`;
+		let sql = `SELECT * FROM price_miner_queue WHERE session_id=${sessionId} AND processed_when IS NULL ORDER BY RAND()`;  //SELECT * FROM price_miner_queue vendor_id=${socketId} AND processed_when IS NULL`;
 		if (size > -1) {
 			sql = sql + ` LIMIT ${size}`
 		}

@@ -12,7 +12,7 @@ import * as cookieParser          from "cookie-parser";
 import * as session               from "express-session";
 import * as cors                  from "cors";
 import * as uidSafe               from "uid-safe";
-import { DbManager }              from "@putteDb/database-manager";
+import { DbManager }              from "@putteDb/db-kernel";
 import { Logger }                 from "@cli/cli.logger";
 import { MinerApiController }     from "@api/miner-api-controller";
 import { ProductDb }              from "@db/product-db";
@@ -96,6 +96,11 @@ routes.use(session(sessionSettings));
 		cors({credentials: true, origin: true});
 		this.webApp.use(cors());
 
+		let sessionSettings = {
+			secret: "TopCap",
+			cookie: { maxAge: 60000 }
+		};
+
 		let http = require("http").Server(this.webApp);
 		let sio = require("socket.io")(http);
 
@@ -103,20 +108,14 @@ routes.use(session(sessionSettings));
 			db: AppDbManager.createConnection()
 		}));
 
-		this.wsServer = new SocketServer(false);
-		this.wsServer.attachSocketIO(sio);
-
-		let sessionSettings = {
-			secret: "TopCap",
-			cookie: { maxAge: 60000 }
-		};
-
 		let sessionMiddleware = session(sessionSettings);
 
 		sio.use(function(socket, next) {
 			sessionMiddleware(socket.request, socket.request.res, next);
 		});
 
+		this.wsServer = new SocketServer();
+		this.wsServer.attachSocketIO(sio);
 		this.webApp.use(sessionMiddleware);
 
 		/*

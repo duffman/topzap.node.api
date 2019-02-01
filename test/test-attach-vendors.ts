@@ -9,7 +9,7 @@ import {ISessionBasket, SessionBasket} from '@zapModels/session-basket';
 import {GameBasketItem, IGameBasketItem} from '@zapModels/basket/basket-product-item';
 import {PRandNum} from '@putte/prand-num';
 import {ProductDb} from '@db/product-db';
-import {DbManager} from '@putteDb/database-manager';
+import {DbManager} from '@putteDb/db-kernel';
 import {Logger} from '@cli/cli.logger';
 import {BasketHandler} from '@components/basket/basket.handler';
 import {BasketItem, IBasketItem} from '@zapModels/basket/basket-item.model';

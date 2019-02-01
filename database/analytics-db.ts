@@ -4,7 +4,7 @@
  * Proprietary and confidential
  */
 import { IDbController }          from '@db/db.controller';
-import { DbManager }              from '@putteDb/database-manager';
+import { DbManager }              from '@putteDb/db-kernel';
 import { Logger }                 from '@cli/cli.logger';
 
 

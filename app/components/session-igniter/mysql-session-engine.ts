@@ -6,7 +6,7 @@
 
 import SqlString                  from '@putteDb/dynsql/sql-string';
 import { ISessionStorageEngine }  from '@components/session-igniter/storage-engine';
-import { DbManager}               from '@putteDb/database-manager';
+import { DbManager}               from '@putteDb/db-kernel';
 import { Logger }                 from '@cli/cli.logger';
 import { CliDebugYield }          from '@cli/cli.debug-yield';
 import { ISessionEntry }          from '@components/session-igniter/session-igniter-entry';

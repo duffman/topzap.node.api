@@ -14,18 +14,18 @@ export class PriceOfferManager {
 	constructor(public serviceClient: IClientSocket,
 				public wss: IZynSocketServer) {}
 
-	private emitGetOffersInit(sessId: string, data: any): void {
-		let mess = new ZynMessage(MessageType.Action, ZapMessageType.GetOffersInit, data, sessId);
-		this.wss.sendToSessionId(sessId, mess);
+	private emitGetOffersInit(socketId: string, data: any): void {
+		let mess = new ZynMessage(MessageType.Action, ZapMessageType.GetOffersInit, data, socketId);
+		this.wss.sendMessageToSocket(socketId, mess);
 	}
 
-	private emitVendorOffer(sessId: string, data: any): void {
-		let mess = new ZynMessage(MessageType.Action, ZapMessageType.VendorOffer, data, sessId);
-		this.wss.sendToSessionId(sessId, mess);
+	private emitVendorOffer(socketId: string, data: any): void {
+		let mess = new ZynMessage(MessageType.Action, ZapMessageType.VendorOffer, data, socketId);
+		this.wss.sendMessageToSocket(socketId, mess);
 	}
 
-	private emitOffersDone(sessId: string): void {
-		let mess = new ZynMessage(MessageType.Action, ZapMessageType.GetOffersDone, {}, sessId);
-		this.wss.sendToSessionId(sessId, mess);
+	private emitOffersDone(socketId: string): void {
+		let mess = new ZynMessage(MessageType.Action, ZapMessageType.GetOffersDone, {}, socketId);
+		this.wss.sendMessageToSocket(socketId, mess);
 	}
 }

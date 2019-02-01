@@ -22,3 +22,6 @@
 [submodule "lib/coldmind-igniter"]
 	path = lib/coldmind-igniter
 	url = https://github.com/duffman/igniter-node-lib.git
+[submodule "lib/kafka-integration"]
+	path = lib/kafka-integration
+	url = https://github.com/duffman/kafka-igniter.git

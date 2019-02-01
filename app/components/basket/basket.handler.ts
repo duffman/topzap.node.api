@@ -21,7 +21,9 @@ import { IVendorModel }           from '@zapModels/vendor-model';
 import { IGameProductData }       from '@zapModels/game-product-model';
 import { IZynSession }            from '@igniter/coldmind/zyn-socket-session';
 import { SessionKeys }            from '@app/types/session-keys';
-import {Logger} from '@cli/cli.logger';
+import { Logger}                  from '@cli/cli.logger';
+import { BasketUtils }            from '@components/basket/basket-utils';
+import { inspect }                from 'util';
 
 export class BasketHandler {
 	constructor() {}
@@ -54,6 +56,14 @@ export class BasketHandler {
 		console.log("Get Session Basket >>>> A:1");
 		let sessBasket = this.getSessionBasket(session);
 
+		Logger.logPurple("## addToBasket");
+		BasketUtils.showBasket(sessBasket);
+
+		// We have added to the basket
+		Logger.logPurple("## BEGIN::BASKET ## addToBasket ##");
+		BasketUtils.showBasket(sessBasket);
+		Logger.logPurple("## END:BASKET ##");
+
 		if (!offerData.accepted) {
 			console.log("NOT ACCEPTED");
 			return false;
@@ -73,28 +83,14 @@ export class BasketHandler {
 		return this.addToVendorBasket(session, resultItem);
 	}
 
-	public addToVendorBasket(session: IZynSession, item: IBasketItem): boolean {
-		let basket = this.getVendorBasket(session, item.vendorId);
-		let existingItem = basket.items.find(o => o.code === item.code);
-
-		if (typeof existingItem === "object") {
-			existingItem.count++;
-		} else {
-			basket.items.push(item);
-		}
-
-		return true;
-	}
-
-	public getVendorBasket(session: IZynSession, vendorId: number): IBasketModel {
+	public getVendorBasket(sessBasket: ISessionBasket, vendorId: number): IBasketModel {
 		let result: IVendorBasket = null;
-		let sessBasket = this.getSessionBasket(session);
 
 		console.log("Get getVendorBasket ##### sessBasket.data", sessBasket.data);
 
 		if (!sessBasket.data) {
 			console.log("IT WAS UNASSIGNED!!!!!");
-			 sessBasket.data = new Array<IVendorBasket>(); //VendorBasketModel(vendorId);
+			sessBasket.data = new Array<IVendorBasket>(); //VendorBasketModel(vendorId);
 		}
 
 		for (let i = 0; i < sessBasket.data.length; i++) {
@@ -113,6 +109,36 @@ export class BasketHandler {
 		console.log("WE`re FINE!!!!!");
 
 		return result;
+	}
+
+	public addToVendorBasket(session: IZynSession, item: IBasketItem): boolean {
+		let sessBasket = this.getSessionBasket(session);
+		let basket = this.getVendorBasket(sessBasket, item.vendorId);
+
+
+		Logger.logPurple(":::::::: BASKET BEFORE ADD :::::::::::")
+		let cp = session.get(SessionKeys.Basket);
+		BasketUtils.showBasket(cp);
+		Logger.logPurple(":::::::: ////// BASKET BEFORE ADD :::::::::::")
+
+		let existingItem = basket.items.find(o => o.code === item.code);
+
+		if (typeof existingItem === "object") {
+			existingItem.count++;
+		} else {
+			basket.items.push(item);
+		}
+
+
+		console.log("\n\n");
+		//let cp = session.get(SessionKeys.Basket);
+		BasketUtils.showBasket(sessBasket);
+		console.log(":: INSPECT ::", inspect(sessBasket));
+		console.log("\n\n");
+
+		session.set(SessionKeys.Basket, sessBasket);
+
+		return true;
 	}
 
 	public getBasketTotal(basket: IBasketModel): number {

@@ -6,7 +6,7 @@
 
 // This made total sense while I was drunk, remove this entire class if it ever yields an error...
 
-import { DbManager }              from '@putteDb/database-manager';
+import { DbManager }              from '@putteDb/db-kernel';
 import { IVendorOfferData }       from '@zapModels/zap-offer.model';
 import { VendorOfferData }        from '@zapModels/zap-offer.model';
 import { Logger }                 from '@cli/cli.logger';

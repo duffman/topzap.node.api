@@ -1,4 +1,4 @@
-import {DbManager} from "@putteDb/database-manager";
+import {DbManager} from "@putteDb/db-kernel";
 
 export class ProductBidMigration {
 	db: DbManager;

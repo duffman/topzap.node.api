@@ -4,7 +4,7 @@
  * Proprietary and confidential
  */
 
-import { DbManager }              from "@putteDb/database-manager";
+import { DbManager }              from "@putteDb/db-kernel";
 import { DynSQL }                 from "@putteDb/dynsql/dynsql";
 import { ICMSContent }            from "@cms/cms-content";
 import { Logger }                 from "@cli/cli.logger";

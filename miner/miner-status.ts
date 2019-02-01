@@ -6,7 +6,7 @@
  */
 
 import { Logger }                 from "@cli/cli.logger";
-import { DbManager }              from "@putteDb/database-manager";
+import { DbManager }              from "@putteDb/db-kernel";
 import { DynSQL }                 from "@putteDb/dynsql/dynsql";
 import { IDbResult }              from "@putteDb/db-result";
 

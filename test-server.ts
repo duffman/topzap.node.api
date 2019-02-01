@@ -52,7 +52,7 @@ app.get("/", function(req, res){
 	req.session // Session object in a normal request
 });
 
-/*sio.sockets.on("connection", function(socket) {
+/*sio.sockets.on("conn", function(socket) {
 	socket.request.session // Now it's available from Socket.IO sockets too! Win!
 });
 */

@@ -1,4 +1,4 @@
-'use strict';Object.defineProperty(exports,'__esModule',{value:true});const database_manager_1=require('../lib/putte-db/database-manager');const zap_offer_model_1=require('../app/zap-ts-models/zap-offer.model');const cli_logger_1=require('../app/cli/cli.logger');const zappy_app_settings_1=require('../app/zappy.app.settings');class CachedOffersDb{constructor(){this.db=new database_manager_1.DbManager();}cacheOffer(data){let sql=`INSERT INTO cached_offers (
+'use strict';Object.defineProperty(exports,'__esModule',{value:true});const db_kernel_1=require('../lib/putte-db/db-kernel');const zap_offer_model_1=require('../app/zap-ts-models/zap-offer.model');const cli_logger_1=require('../app/cli/cli.logger');const zappy_app_settings_1=require('../app/zappy.app.settings');class CachedOffersDb{constructor(){this.db=new db_kernel_1.DbManager();}cacheOffer(data){let sql=`INSERT INTO cached_offers (
 					id,
 					code,
 					vendor_id,

@@ -4,7 +4,7 @@
  * Proprietary and confidential
  */
 
-import { DbManager }              from "@putteDb/database-manager";
+import { DbManager }              from "@putteDb/db-kernel";
 import { SQLTableDataRow }        from "@putteDb/sql-table-data-row";
 import { Logger }                 from "@cli/cli.logger";
 import { IVendorModel }           from "@zapModels/vendor-model";

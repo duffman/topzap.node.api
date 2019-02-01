@@ -30,7 +30,7 @@ export class ZynRemoteIp {
 
 	public static getIpInfoMiddleware(req: Request): string {
 		//let xForwardedFor = (req.headers['x-forwarded-for'] || "").replace(/:\d+$/, '');
-		//return xForwardedFor || req.connection.remoteAddress;
+		//return xForwardedFor || req.conn.remoteAddress;
 	}
 	*/
 

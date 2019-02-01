@@ -288,7 +288,7 @@ export class MinerApiController implements IApiController {
 
 				let sessionId = newSessionRes.lastInsertId;
 
-				console.log("Create sessionId :: newSessionRes ::", sessionId);
+				console.log("Create socketId :: newSessionRes ::", sessionId);
 
 				let createQueueRes = await createMinerQueue(sessionId);
 				sessionData = await getMinerSession(vendorId);

@@ -4,7 +4,7 @@
  * Proprietary and confidential
  */
 
-import { DbManager }              from '@putteDb/database-manager';
+import { DbManager }              from '@putteDb/db-kernel';
 
 export interface IDbController {
 	db: DbManager;
