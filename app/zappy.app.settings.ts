@@ -13,7 +13,7 @@ export module Settings {
 	export const sessionSecret = "1gulka9n";
 
 	export module Caching {
-		export const UseCachedOffers = false;
+		export const UseCachedOffers = true;
 		export const CacheTTL = DateInterval.days(10); // 5760; // 4 days
 	}
 

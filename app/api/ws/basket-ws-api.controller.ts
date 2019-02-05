@@ -128,6 +128,11 @@ export class BasketWsApiController implements IWSApiController {
 		return null;
 	}
 
+	private getCachedOfferData(code: string) {
+		return new Promise((resolve, reject) => {
+		});
+	}
+
 
 	/**
 	 * Attempt to getAs cached offers
@@ -140,12 +145,8 @@ export class BasketWsApiController implements IWSApiController {
 		console.log("########### doGetOffers :: " + code + " :: " + sessId);
 
 		this.cachedOffersDb.getCachedOffers(code).then(res => {
-			console.log("########### doGetOffers :: >> 1");
-
 			return res;
 		}).catch(err => {
-			console.log("########### doGetOffers :: >> 2");
-
 			Logger.logFatalError("BasketWsApiController :: doGetOffers :: Catch ::", err);
 			return null;
 
@@ -153,7 +154,7 @@ export class BasketWsApiController implements IWSApiController {
 			//
 			// Simulate Messages Sent using a regular lookup
 			//
-			if (cachedRes) {
+			if (cachedRes && cachedRes.length > 0) {
 				console.log("########### doGetOffers :: cachedRes");
 
 				scope.emitGetOffersInit(sessId, new GetOffersInit(cachedRes.length));
