@@ -108,6 +108,7 @@ export class BasketWsApiController implements IWSApiController {
 		let attempt2 = session.getAs<ISessionBasket>(SessionKeys.Basket);
 		let attempt3 = session.get (SessionKeys.Basket);
 
+		/*
 		LogFat("Session Basket Get");
 
 		if (attempt1) {
@@ -116,12 +117,13 @@ export class BasketWsApiController implements IWSApiController {
 		}
 		if (attempt2) {
 			FatLine();
-			console.log("ATTEMPT 2", attempt1);
+			console.log("ATTEMPT 2", attempt2);
 		}
 		if (attempt3) {
 			FatLine();
-			console.log("ATTEMPT 3 ", attempt1);
+			console.log("ATTEMPT 3 ", attempt3);
 		}
+		*/
 
 		return null;
 	}
@@ -174,18 +176,22 @@ export class BasketWsApiController implements IWSApiController {
 	}
 
 	public doGetOffers(session: IZynSession, mess: IZynMessage): void {
+		console.log("###################### ALLAN ################################");
+
 		let code = mess.data.code;
 		console.log("### doGetOffers ::", code);
 
-		if (!PStrUtils.isNumeric(code)) {
+		/*if (!PStrUtils.isNumeric(code)) {
 			Logger.logDebugErr("BasketWsApiController :: doGetOffers ::", code);
 			this.wss.messError(session.id, mess, new Error("messZapMessageType.ErrInvalidCode"));
 			return;
-		}
+		}*/
 
 		if (Settings.Caching.UseCachedOffers) {
 			console.log("### doGetOffers ::", "UseCachedOffers");
 			this.getCachedOffers(code, session.id);
+
+
 		} else {
 			console.log("### doGetOffers ::", "SEARCH SERVICE");
 			this.emitGetOffersMessage(code, session.id); // Call price service

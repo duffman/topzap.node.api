@@ -36,8 +36,6 @@ import { AnalyticsWsApiController } from '@api/ws/analytics-ws-api.controller';
 import { Settings }               from '@app/zappy.app.settings';
 import * as path                  from 'path';
 import * as socketSession         from "socket.io-mysql-session";
-import { AppDbManager }           from '@db/app-db-manager';
-
 
 let mySqlStore = require("express-mysql-session")(session);
 
@@ -103,9 +101,10 @@ routes.use(session(sessionSettings));
 
 		let http = require("http").Server(this.webApp);
 		let sio = require("socket.io")(http);
+		let dbManager = new DbManager();
 
 		sio.use(new socketSession({
-			db: AppDbManager.createConnection()
+			db: dbManager.createConnection()
 		}));
 
 		let sessionMiddleware = session(sessionSettings);
