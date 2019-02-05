@@ -3,7 +3,7 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  */
-
+// Nytt
 import { MinerStatus }            from "@miner/miner-status";
 import * as express               from "express";
 import { NextFunction, Router }   from "express";
@@ -37,7 +37,6 @@ import { Settings }               from '@app/zappy.app.settings';
 import * as path                  from 'path';
 import * as socketSession         from "socket.io-mysql-session";
 
-let mySqlStore = require("express-mysql-session")(session);
 
 export class ZapApp implements IZappyApp {
 	static developmentMode = false;
