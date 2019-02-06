@@ -3,7 +3,7 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
  */
-// Nytt
+//
 import { MinerStatus }            from "@miner/miner-status";
 import * as express               from "express";
 import { NextFunction, Router }   from "express";
@@ -41,8 +41,9 @@ import * as socketSession         from "socket.io-mysql-session";
 export class ZapApp implements IZappyApp {
 	static developmentMode = false;
 
-	port = 8080;
-	wsPort = 8081;
+	//port = 8080;
+	//wsPort = 8081;
+
 	debugMode: boolean = false;
 
 	restControllers: IRestApiController[];
@@ -83,7 +84,7 @@ let sessionSettings = {
 routes.use(session(sessionSettings));
 */
 
-	constructor(public includeMinerApi: boolean = false) {
+	constructor(public port: number, public includeMinerApi: boolean = false) {
 		this.restControllers = new Array<IRestApiController>();
 		this.wsControllers = new Array<IWSApiController>();
 
@@ -138,12 +139,14 @@ routes.use(session(sessionSettings));
 		this.initRestControllers();
 		this.initWsControllers();
 
-		http.listen(8080);
+		Logger.logPurple(`Starting Server on Port ${this.port}`);
+
+		http.listen(this.port);
 
 
 		/*
 
-		this.db = new DbManager();
+		this.db = new DbKernel();
 		this.productDb = new ProductDb();
 
 		*/
@@ -376,9 +379,10 @@ routes.use(session(sessionSettings));
 		}
 	}
 }
-
+/*
 if (CliCommander.debug()) {
 	console.log("OUTSIDE CODE EXECUTING");
 	let minerApi = true;
 	let app = new ZapApp(minerApi);
 }
+*/

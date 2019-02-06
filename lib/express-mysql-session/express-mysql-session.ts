@@ -24,7 +24,7 @@ export class ExpressMysqlSession {
 /*
 
 'use strict';
-import {DbManager} from '@putteDb/database-manager';
+import {DbKernel} from '@putteDb/database-manager';
 
 var _ = require('underscore');
 var mysql = require('mysql');

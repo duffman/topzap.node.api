@@ -22,15 +22,8 @@ export class SessBasketTest {
 	}
 
 	public doRun() {
-		this.db.showDebugInfo();
-
-
-		let connection = this.db.getConnection();
+		let conn = this.db.createConnection();
 		let sql = "SELECT * FROM product_edition LIMIT 1";
-
-		let conn = this.db.getConnection();
-
-		//conn.destroy();
 
 		conn.query(sql, (error, result, tableFields) => {
 
@@ -41,20 +34,7 @@ export class SessBasketTest {
 				}
 
 			} else {
-
 				console.log("result", result);
-
-				/*
-				return this.parseMysqlQueryResult(error, result, tableFields).then((res) => {
-
-					if (error) {
-						console.log("FET ERROR ::", error);
-
-					}
-				}).catch((err) => {
-					reject(err);
-				});
-				*/
 			}
 		});
 

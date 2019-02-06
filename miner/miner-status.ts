@@ -65,18 +65,6 @@ export class MinerStatus {
 		let scope = this;
 		let result = new Array<MinerStatucRec>();
 
-		/*
-		function execSql(sql: string): Promise<IDbResult> {
-			return new Promise((resolve, reject) => {
-				return this.database.dbQuery(sql).then((dbRes) => {
-					resolve(dbRes);
-				}).catch((error) => {
-					Logger.logError("getMinerSession :: error ::", error);
-					reject(error);
-				});
-			});
-		}*/
-
 		function getSessionDbRes(): Promise<IDbResult> {
 			return new Promise((resolve, reject) => {
 				return scope.getSessionInfo().then((dbRes) => {
@@ -142,8 +130,6 @@ export class MinerStatus {
 
 				result.push(statusRec);
 			}
-
-			scope.db.close();
 		}
 
 		return new Promise((resolve, reject) => {
