@@ -23,36 +23,20 @@ import { Logger }                 from "@cli/cli.logger";
 import { ZapApp }                 from "@app/app";
 import { CliCommander }           from '@cli/cli.commander';
 import * as fs                    from "fs";
+import {CliConfigFile, IConfigFile} from '@cli/cli.config-file';
 
-export interface IConfigFile {
-	port: number;
-}
+
 
 export class Main implements IColdmindNode {
 	debugMode: boolean;
 	zappy: IZappyApp;
 
-	private readConfig(): any {
-		let result = { port: 8080 };
-		let configFile = __dirname + "/app.config.json";
-		Logger.logPurple("Reading config file ::", configFile);
-
-		try {
-			if (fs.existsSync(configFile)) {
-				let contents = fs.readFileSync(configFile, 'utf8');
-				result = JSON.parse(contents);
-			}
-		} catch (ex) {
-			Logger.logError("Error parsing config file ::", ex);
-		}
-
-		return result;
-	}
-
 	public run(): boolean {
+		let config = new CliConfigFile();
+
 		try {
-			let config = this.readConfig() as IConfigFile;
-			this.zappy = new ZapApp(config.port, this.debugMode);
+			let configData = config.getConfig() as IConfigFile;
+			this.zappy = new ZapApp(configData.port, this.debugMode);
 			return true;
 		} catch (err) {
 			Logger.logError("Run Failed ::", err);

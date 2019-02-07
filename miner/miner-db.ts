@@ -285,7 +285,7 @@ export class MinerDb {
 				let success = dbRes.affectedRows > 0;
 				resolve(success);
 			}).catch((error) => {
-				Logger.logError("Error Gettings Vendors", error);
+				Logger.logError("Error createMinerQueue", error);
 				reject(error);
 			});
 		});
