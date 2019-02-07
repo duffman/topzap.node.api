@@ -36,6 +36,8 @@ import { AnalyticsWsApiController } from '@api/ws/analytics-ws-api.controller';
 import { Settings }               from '@app/zappy.app.settings';
 import * as path                  from 'path';
 import * as socketSession         from "socket.io-mysql-session";
+import * as fs from 'fs';
+const https = require('https');
 
 
 export class ZapApp implements IZappyApp {
@@ -53,6 +55,7 @@ export class ZapApp implements IZappyApp {
 	webAppMiddleware: IZynMiddleware[];
 	webRoutes: Router = Router();
 	sessionMiddleware: any;
+
 
 	wsServer: SocketServer;
 	serviceClient: ClientSocket;
@@ -93,6 +96,23 @@ routes.use(session(sessionSettings));
 
 		cors({credentials: true, origin: true});
 		this.webApp.use(cors());
+
+		// Certificate
+		let useHttps = false;
+		let credentials: any;
+		let certFile = "/etc/letsencrypt/live/topzap.com/privkey.pem";
+		if (fs.existsSync(certFile)) {
+			useHttps = true;
+			let privateKey = fs.readFileSync(certFile, 'utf8');
+			let certificate = fs.readFileSync('/etc/letsencrypt/live/topzap.com/cert.pem', 'utf8');
+			let ca = fs.readFileSync('/etc/letsencrypt/live/topzap.com/chain.pem', 'utf8');
+
+			credentials = {
+				key: privateKey,
+				cert: certificate,
+				ca: ca
+			}
+		}
 
 		let sessionSettings = {
 			secret: "TopCap",
@@ -140,6 +160,14 @@ routes.use(session(sessionSettings));
 		this.initWsControllers();
 
 		Logger.logPurple(`Starting Server on Port ${this.port}`);
+
+		if (useHttps) {
+			const httpsServer = https.createServer(credentials, this.webApp);
+
+			httpsServer.listen(443, () => {
+				console.log('HTTPS Server running on port 443');
+			});
+		}
 
 		http.listen(this.port);
 
