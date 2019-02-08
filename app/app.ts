@@ -159,12 +159,15 @@ routes.use(session(sessionSettings));
 		this.initRestControllers();
 		this.initWsControllers();
 
+
+		this.port = 3000;
+
 		Logger.logPurple(`Starting Server on Port ${this.port}`);
 
 		if (useHttps) {
 			const httpsServer = https.createServer(credentials, this.webApp);
 
-			httpsServer.listen(443, () => {
+			httpsServer.listen(8089, () => {
 				console.log('HTTPS Server running on port 443');
 			});
 		}
