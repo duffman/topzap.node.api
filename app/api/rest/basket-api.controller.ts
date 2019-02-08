@@ -52,6 +52,11 @@ export class BasketApiController implements IApiController {
 
 		let ably = new Ably.Realtime("CRJz2w.jyPfYw:ED3ZFMwBKD7EY_LQ");
 		this.channel = ably.channels.get("bids");
+
+		this.channel.subscribe('greeting', (message) => {
+			console.log("Received a greeting message in realtime: " + message.data);
+			this.channel.publish('greeting', 'balle received');
+		});
 	}
 
 	private echoDebug() {
