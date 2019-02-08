@@ -43,13 +43,21 @@ const https = require('https');
 export class ZapApp implements IZappyApp {
 	static developmentMode = false;
 
+	//port = 8080;
+	//wsPort = 8081;
+
 	debugMode: boolean = false;
 
 	restControllers: IRestApiController[];
+	wsControllers: IWSApiController[];
 
 	webApp: express.Application;
+	webAppMiddleware: IZynMiddleware[];
 	webRoutes: Router = Router();
 	sessionMiddleware: any;
+
+
+	wsServer: SocketServer;
 	serviceClient: ClientSocket;
 
 	db: DbManager;
@@ -65,8 +73,23 @@ export class ZapApp implements IZappyApp {
 		return "ZapApp-Node-API/WillyW0nka";
 	}
 
+	/*
+let sessionSettings = {
+	secret: this.getSecret(),
+	genid: (req) => {
+		return "genuuid(); // use UUIDs for session IDs
+	},
+	//resave: false,
+	saveUninitialized: true,
+	cookie: { secure: false }
+};
+
+routes.use(session(sessionSettings));
+*/
+
 	constructor(public port: number, public includeMinerApi: boolean = false) {
 		this.restControllers = new Array<IRestApiController>();
+		this.wsControllers = new Array<IWSApiController>();
 
 		this.webApp = express();
 		this.sessionMiddleware = session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }});
@@ -74,28 +97,80 @@ export class ZapApp implements IZappyApp {
 		cors({credentials: true, origin: true});
 		this.webApp.use(cors());
 
+		// Certificate
+		let useHttps = false;
+		let credentials: any;
+		let certFile = "/etc/letsencrypt/live/topzap.com/privkey.pem";
+		if (fs.existsSync(certFile)) {
+			useHttps = true;
+			let privateKey = fs.readFileSync(certFile, 'utf8');
+			let certificate = fs.readFileSync('/etc/letsencrypt/live/topzap.com/cert.pem', 'utf8');
+			let ca = fs.readFileSync('/etc/letsencrypt/live/topzap.com/chain.pem', 'utf8');
+
+			credentials = {
+				key: privateKey,
+				cert: certificate,
+				ca: ca
+			}
+		}
+
 		let sessionSettings = {
 			secret: "TopCap",
 			cookie: { maxAge: 60000 }
 		};
 
 		let http = require("http").Server(this.webApp);
+		let sio = require("socket.io")(http);
 		let dbManager = new DbManager();
 
+		sio.use(new socketSession({
+			db: dbManager.createConnection()
+		}));
+
 		let sessionMiddleware = session(sessionSettings);
+
+		sio.use(function(socket, next) {
+			sessionMiddleware(socket.request, socket.request.res, next);
+		});
+
+		this.wsServer = new SocketServer();
+		this.wsServer.attachSocketIO(sio);
 		this.webApp.use(sessionMiddleware);
 
+		/*
+		this.wsServer.onMessage((message: IZynMessage) => {
+			console.log("WSSERVER :: Message ::", message.data);
+		});
+		*/
+
 		this.webApp.use(this.webRoutes);
+
+		/*
+		this.webApp.use(cookieParser());
+		this.webApp.use(bodyParser.json()); // support json encoded bodies
+		this.webApp.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+		*/
 
 		this.serviceClient = new ClientSocket();
 		this.serviceClient.connect(null);
 
 		this.configureWebServer2();
+
 		this.initRestControllers();
+		this.initWsControllers();
+
 
 		this.port = 3000;
 
 		Logger.logPurple(`Starting Server on Port ${this.port}`);
+
+		if (useHttps) {
+			const httpsServer = https.createServer(credentials, this.webApp);
+
+			httpsServer.listen(8089, () => {
+				console.log('HTTPS Server running on port 443');
+			});
+		}
 
 		http.listen(this.port);
 
@@ -184,17 +259,71 @@ export class ZapApp implements IZappyApp {
 		}
 	}
 
+	private initWsControllers() {
+		const controllers = this.wsControllers;
+
+		controllers.push(new ServiceWsApiController(this.debugMode));
+		controllers.push(new SearchWsApiController(this.debugMode));
+		controllers.push(new BasketWsApiController(this.debugMode));
+		controllers.push(new DataCacheController(this.debugMode));
+		controllers.push(new AnalyticsWsApiController(this.debugMode));
+
+		//
+		// Pass the WS Server and Service Client to each controller
+		//
+		for (let index in controllers) {
+			let controller = controllers[index];
+			controller.attachWSS(this.wsServer);
+			controller.attachServiceClient(this.serviceClient);
+		}
+	}
+
+	private configureWebSocket(): void {
+		return;
+		let wss = this.wsServer;
+
+		wss.io.use((socket, next) => {
+			this.sessionMiddleware(socket.request, socket.request.res, next);
+		});
+
+		wss.onServerStarted((port) => {
+			Logger.logYellow("Websocket IOServer Started on port ::", port)
+		});
+
+		wss.onError((err) => {
+			Logger.logError("Websocket Error ::", err);
+		});
+
+		wss.onMessage((mess: IZynMessage) => {
+			Logger.logError("Websocket :: Message ::", mess);
+		});
+
+		wss.io.sockets.on("connection", (socket) => {
+			socket.request.session; // Now it's available from Socket.IO sockets too! Win!
+		});
+
+	}
+
 	private configureWebServer2(): void {
 		// set the view engine to ejs
 		this.webApp.set('view engine', 'ejs');
 
 		this.webApp.use(express.static('public'));
 		this.webApp.use("images", express.static("public/images"));
+
 		this.webApp.use('/static', express.static(path.join(__dirname, 'public')))
+
+
+		/*
+				this.webApp.use(cookieParser());
+				this.webApp.use(bodyParser.json()); // support json encoded bodies
+				this.webApp.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+		*/
 
 		let routes = this.webRoutes;
 
 		routes.use(this.sessionMiddleware);
+
 		routes.use(cookieParser());
 		routes.use(bodyParser.json()); // support json encoded bodies
 		routes.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
