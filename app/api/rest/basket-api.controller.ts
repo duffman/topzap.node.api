@@ -36,10 +36,8 @@ import { IProductData }           from '@zapModels/product.model';
 import { PRandNum }               from '@putte/prand-num';
 import { PVarUtils }              from '@putte/pvar-utils';
 import { IZynSocketServer }          from '@igniter/coldmind/zyn-socket.server';
-import { IZynMessage }               from '@igniter/messaging/igniter-messages';
-import { MessageType }            from '@igniter/messaging/message-types';
-import { ZapMessageType }         from '@zapModels/messages/zap-message-types';
 import { PHttpClient }            from '@putte/inet/phttp-client';
+import Ably = require('ably/callbacks');
 
 export class BasketApiController implements IApiController {
 	productApiController: ProductApiController;
@@ -47,8 +45,13 @@ export class BasketApiController implements IApiController {
 	sessionBasket: ISessionBasket;
 	reqSession: any;
 
+	channel: any;
+
 	constructor(public debugMode: boolean = false) {
 		this.searchService = new PriceSearchService(null);
+
+		let ably = new Ably.Realtime("CRJz2w.jyPfYw:ED3ZFMwBKD7EY_LQ");
+		this.channel = ably.channels.get("bids");
 	}
 
 	private echoDebug() {
@@ -534,6 +537,16 @@ export class BasketApiController implements IApiController {
 	}
 
 	public initRoutes(routes: Router): void  {
+		routes.get("/balle", (req: Request, resp: Response) => {
+			console.log("BALLE CALLED!!!");
+
+			let ably = new Ably.Realtime("CRJz2w.jyPfYw:ED3ZFMwBKD7EY_LQ");
+			let cp = ably.channels.get("bids");
+			cp.publish('greeting', 'hello!');
+
+			resp.end("BALLE KULING!!");
+		});
+
 		routes.get(ApiRoutes.Basket.GET_BASKET,             this.apiGetBasket.bind(this));
 		routes.post(ApiRoutes.Basket.POST_BASKET_ADD,       this.apiAddBasketItem.bind(this));
 		routes.post(ApiRoutes.Basket.POST_BASKET_DELETE,    this.apiDeleteBasketItem.bind(this));

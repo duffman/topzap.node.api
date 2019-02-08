@@ -17,14 +17,20 @@ import { ClientSocket }           from '@igniter/coldmind/socket-io.client';
 import { CachedOffersDb }         from '@db/cached-offers-db';
 import { GetOffersInit }          from '@zapModels/messages/get-offers-messages';
 import { IZynSession }            from '@igniter/coldmind/zyn-socket-session';
+import Ably = require('ably/callbacks');
 
 export class SearchWsApiController implements IWSApiController {
 	wss: SocketServer;
 	serviceClient: ClientSocket;
 	cachedOffersDb: CachedOffersDb;
 
+	channel: any;
+
 	constructor(public debugMode: boolean = false) {
 		this.cachedOffersDb = new CachedOffersDb();
+
+		let ably = new Ably.Realtime("CRJz2w.jyPfYw:ED3ZFMwBKD7EY_LQ");
+		this.channel = ably.channels.get("bids");
 	}
 
 	public initRoutes(routes: any): void {
@@ -69,6 +75,8 @@ export class SearchWsApiController implements IWSApiController {
 	public doGetOffers(code: string, socketId: string): void {
 		let scope = this;
 		console.log("doGetOffers :: " + code + " :: " + socketId);
+
+		this.channel.publish('greeting', 'hello!');
 
 		this.cachedOffersDb.getCachedOffers(code).then(res => {
 			return res;
